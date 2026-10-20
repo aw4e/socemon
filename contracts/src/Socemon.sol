@@ -5,7 +5,9 @@ import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-/// Socemon monsters. Only the server minter mints; everything but event drops is soulbound.
+/// Socemon v2: the contract is the whole backend. Profiles, connection requests, Eggs and monsters live here, and only
+/// the server relayer (MINTER_ROLE) writes, always on behalf of the user passed as the first argument.
+/// ponytail: the relayer is fully trusted; move to EIP-712 user-signed intents when actions must be trustless.
 contract Socemon is ERC1155, AccessControl {
     using Strings for uint256;
 
@@ -13,9 +15,12 @@ contract Socemon is ERC1155, AccessControl {
     uint256 public constant STARTER_ID = 0;
     uint256 public constant NEXMON_ID = 19;
     uint8 public constant POOL_WILD = 0;
+    uint8 public constant MAX_ROLE = 5;
     uint8 public constant POOL_EVENT = 6;
     uint8 public constant POOL_BONUS = 7;
     uint8 private constant ALL_TYPES = 0x3E; // bits 1..5, one per role type
+    uint8 private constant REQUESTED = 1;
+    uint8 private constant CONNECTED = 2;
 
     string public constant name = "Socemon";
     string public constant symbol = "SOCE";
@@ -35,21 +40,47 @@ contract Socemon is ERC1155, AccessControl {
         bool transferable;
     }
 
+    /// `role` is also the Egg pool the other person gets: 0 Wild, 1 Byte, 2 Blaze, 3 Prism, 4 Gold, 5 Echo.
+    struct Profile {
+        string name;
+        uint8 role;
+        uint256 partner;
+        bool registered;
+    }
+
     mapping(uint256 => Species) public species;
     mapping(address => uint8) public typeMask;
+    /// link[a][b]: 0 none, 1 a requested b, 2 connected (set both ways).
+    mapping(address => mapping(address => uint8)) public link;
     mapping(uint8 => uint256[]) private _pools;
+    mapping(address => Profile) private _profiles;
+    mapping(address => address[]) private _incoming;
+    mapping(address => address[]) private _connections;
+    mapping(address => uint16[6]) private _eggs;
     string private _baseUri;
     uint256 private _nonce;
 
-    event StarterMinted(address indexed to);
+    event Registered(address indexed user, string name, uint8 role);
+    event ConnectRequested(address indexed from, address indexed to);
+    event Connected(address indexed a, address indexed b);
     event EggHatched(address indexed to, uint8 pool, uint256 id);
     event DropMinted(address indexed to, uint256 id);
     event NexmonUnlocked(address indexed to);
+    event PartnerSet(address indexed user, uint256 id);
 
-    error AlreadyHasStarter();
+    error AlreadyConnected();
     error AlreadyHasDrop();
+    error AlreadyRegistered();
+    error AlreadyRequested();
+    error InvalidName();
     error InvalidPool();
+    error InvalidRole();
     error InvalidSpecies();
+    error NoEgg();
+    error NoRequest();
+    error NotOwned();
+    error NotRegistered();
+    error SelfConnect();
     error SoldOut();
     error Soulbound();
     error UnknownSpecies();
@@ -58,6 +89,8 @@ contract Socemon is ERC1155, AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _baseUri = baseUri;
     }
+
+    // ---- admin ----
 
     function addSpecies(SpeciesInit[] calldata list) external onlyRole(DEFAULT_ADMIN_ROLE) {
         for (uint256 i; i < list.length; i++) {
@@ -72,42 +105,109 @@ contract Socemon is ERC1155, AccessControl {
         _baseUri = baseUri;
     }
 
-    function poolSpecies(uint8 pool) external view returns (uint256[] memory) {
-        return _pools[pool];
+    // ---- relayer writes ----
+
+    function register(address user, string calldata displayName, uint8 role) external onlyRole(MINTER_ROLE) {
+        Profile storage p = _profiles[user];
+        if (p.registered) revert AlreadyRegistered();
+        uint256 len = bytes(displayName).length;
+        if (len == 0 || len > 24) revert InvalidName();
+        if (role > MAX_ROLE) revert InvalidRole();
+        p.name = displayName;
+        p.role = role;
+        p.registered = true;
+        _mint(user, STARTER_ID, 1, "");
+        emit Registered(user, displayName, role);
     }
 
-    function mintStarter(address to) external onlyRole(MINTER_ROLE) {
-        if (balanceOf(to, STARTER_ID) > 0) revert AlreadyHasStarter();
-        _mint(to, STARTER_ID, 1, "");
-        emit StarterMinted(to);
+    /// Asking someone who already asked you connects you both right away.
+    function requestConnect(address from, address to) external onlyRole(MINTER_ROLE) {
+        if (from == to) revert SelfConnect();
+        if (!_profiles[from].registered || !_profiles[to].registered) revert NotRegistered();
+        if (link[from][to] == CONNECTED) revert AlreadyConnected();
+        if (link[from][to] == REQUESTED) revert AlreadyRequested();
+        if (link[to][from] == REQUESTED) {
+            _connect(to, from);
+            return;
+        }
+        link[from][to] = REQUESTED;
+        _incoming[to].push(from);
+        emit ConnectRequested(from, to);
     }
 
-    function hatchEgg(address to, uint8 pool) external onlyRole(MINTER_ROLE) returns (uint256 id) {
-        if (pool >= POOL_EVENT) revert InvalidPool();
-        id = _pick(pool, to);
-        if (id == STARTER_ID && pool != POOL_WILD) id = _pick(POOL_WILD, to);
+    function approveConnect(address user, address from) external onlyRole(MINTER_ROLE) {
+        if (link[from][user] != REQUESTED) revert NoRequest();
+        _connect(from, user);
+    }
+
+    function hatch(address user, uint8 pool) external onlyRole(MINTER_ROLE) returns (uint256 id) {
+        if (pool > MAX_ROLE) revert InvalidPool();
+        if (_eggs[user][pool] == 0) revert NoEgg();
+        _eggs[user][pool]--;
+
+        id = _pick(pool, user);
+        if (id == STARTER_ID && pool != POOL_WILD) id = _pick(POOL_WILD, user);
         if (id == STARTER_ID) revert SoldOut();
 
         Species storage s = species[id];
         s.minted++;
-        _mint(to, id, 1, "");
-        emit EggHatched(to, pool, id);
+        _mint(user, id, 1, "");
+        emit EggHatched(user, pool, id);
 
         if (s.pool != POOL_WILD) {
-            uint8 mask = typeMask[to] | (uint8(1) << s.pool);
-            typeMask[to] = mask;
-            if (mask == ALL_TYPES) _maybeNexmon(to);
+            uint8 mask = typeMask[user] | (uint8(1) << s.pool);
+            typeMask[user] = mask;
+            if (mask == ALL_TYPES) _maybeNexmon(user);
         }
     }
 
-    function mintDrop(address to, uint256 id) external onlyRole(MINTER_ROLE) {
+    function mintDrop(address user, uint256 id) external onlyRole(MINTER_ROLE) {
+        if (!_profiles[user].registered) revert NotRegistered();
         Species storage s = species[id];
         if (!s.exists || s.pool != POOL_EVENT) revert UnknownSpecies();
-        if (balanceOf(to, id) > 0) revert AlreadyHasDrop();
+        if (balanceOf(user, id) > 0) revert AlreadyHasDrop();
         if (s.minted >= s.maxSupply) revert SoldOut();
         s.minted++;
-        _mint(to, id, 1, "");
-        emit DropMinted(to, id);
+        _mint(user, id, 1, "");
+        emit DropMinted(user, id);
+    }
+
+    function setPartner(address user, uint256 id) external onlyRole(MINTER_ROLE) {
+        if (balanceOf(user, id) == 0) revert NotOwned();
+        _profiles[user].partner = id;
+        emit PartnerSet(user, id);
+    }
+
+    // ---- views ----
+
+    function profileOf(address user) external view returns (Profile memory) {
+        return _profiles[user];
+    }
+
+    function eggsOf(address user) external view returns (uint16[6] memory) {
+        return _eggs[user];
+    }
+
+    function connectionsOf(address user) external view returns (address[] memory) {
+        return _connections[user];
+    }
+
+    /// Requests still waiting for `user` to approve.
+    function pendingOf(address user) external view returns (address[] memory out) {
+        address[] storage all = _incoming[user];
+        uint256 n;
+        for (uint256 i; i < all.length; i++) {
+            if (link[all[i]][user] == REQUESTED) n++;
+        }
+        out = new address[](n);
+        n = 0;
+        for (uint256 i; i < all.length; i++) {
+            if (link[all[i]][user] == REQUESTED) out[n++] = all[i];
+        }
+    }
+
+    function poolSpecies(uint8 pool) external view returns (uint256[] memory) {
+        return _pools[pool];
     }
 
     function uri(uint256 id) public view override returns (string memory) {
@@ -118,6 +218,8 @@ contract Socemon is ERC1155, AccessControl {
         return super.supportsInterface(interfaceId);
     }
 
+    // ---- internals ----
+
     function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal override {
         if (from != address(0) && to != address(0)) {
             for (uint256 i; i < ids.length; i++) {
@@ -125,6 +227,17 @@ contract Socemon is ERC1155, AccessControl {
             }
         }
         super._update(from, to, ids, values);
+    }
+
+    /// Each side gets an Egg of the other side's role.
+    function _connect(address a, address b) private {
+        link[a][b] = CONNECTED;
+        link[b][a] = CONNECTED;
+        _connections[a].push(b);
+        _connections[b].push(a);
+        _eggs[a][_profiles[b].role]++;
+        _eggs[b][_profiles[a].role]++;
+        emit Connected(a, b);
     }
 
     function _maybeNexmon(address to) private {
@@ -155,7 +268,7 @@ contract Socemon is ERC1155, AccessControl {
         return STARTER_ID;
     }
 
-    /// ponytail: prevrandao + nonce while the server minter picks the timing; swap for Pyth Entropy when hatches must be trustless.
+    /// ponytail: prevrandao + nonce while the relayer picks the timing; swap for Pyth Entropy when hatches must be trustless.
     function _random(address to) private returns (uint256) {
         return uint256(keccak256(abi.encode(block.prevrandao, to, _nonce++)));
     }

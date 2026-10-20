@@ -11,6 +11,8 @@ contract SocemonTest is Test {
     address minter = makeAddr("minter");
     address alice = makeAddr("alice");
     address bob = makeAddr("bob");
+    address carol = makeAddr("carol");
+    uint256 friends;
 
     function setUp() public {
         s = new Socemon(address(this), "https://socemon.test/api/socemon/");
@@ -27,29 +29,139 @@ contract SocemonTest is Test {
         for (uint8 pool = 1; pool <= 5; pool++) _add(pool, pool, 10, false);
     }
 
-    function test_starterOncePerWallet() public {
+    function _register(address user, uint8 role) internal {
+        vm.prank(minter);
+        s.register(user, "Trainer", role);
+    }
+
+    /// One Egg of `pool` for a registered `user`, by connecting with a fresh trainer whose role is `pool`.
+    function _egg(address user, uint8 pool) internal {
+        address friend = makeAddr(string.concat("friend", vm.toString(friends++)));
+        _register(friend, pool);
         vm.startPrank(minter);
-        s.mintStarter(alice);
-        assertEq(s.balanceOf(alice, 0), 1);
-        vm.expectRevert(Socemon.AlreadyHasStarter.selector);
-        s.mintStarter(alice);
+        s.requestConnect(friend, user);
+        s.approveConnect(user, friend);
         vm.stopPrank();
     }
 
-    function test_starterIsSoulbound() public {
+    function _hatch(address user, uint8 pool) internal returns (uint256) {
         vm.prank(minter);
-        s.mintStarter(alice);
+        return s.hatch(user, pool);
+    }
+
+    function test_registerStoresProfileAndMintsSoci() public {
+        vm.expectEmit(true, false, false, true);
+        emit Socemon.Registered(alice, "Alice", 1);
+        vm.prank(minter);
+        s.register(alice, "Alice", 1);
+        Socemon.Profile memory p = s.profileOf(alice);
+        assertEq(p.name, "Alice");
+        assertEq(p.role, 1);
+        assertEq(p.partner, 0);
+        assertTrue(p.registered);
+        assertEq(s.balanceOf(alice, 0), 1);
+    }
+
+    function test_registerRejectsRepeatsBadNamesAndBadRoles() public {
+        _register(alice, 1);
+        vm.startPrank(minter);
+        vm.expectRevert(Socemon.AlreadyRegistered.selector);
+        s.register(alice, "Again", 1);
+        vm.expectRevert(Socemon.InvalidName.selector);
+        s.register(bob, "", 1);
+        vm.expectRevert(Socemon.InvalidName.selector);
+        s.register(bob, "abcdefghijklmnopqrstuvwxy", 1);
+        vm.expectRevert(Socemon.InvalidRole.selector);
+        s.register(bob, "Bob", 6);
+        s.register(bob, "abcdefghijklmnopqrstuvwx", 0);
+        vm.stopPrank();
+        assertTrue(s.profileOf(bob).registered);
+    }
+
+    function test_starterIsSoulbound() public {
+        _register(alice, 0);
         vm.prank(alice);
         vm.expectRevert(Socemon.Soulbound.selector);
         s.safeTransferFrom(alice, bob, 0, 1, "");
     }
 
-    function test_hatchMintsFromRequestedPoolAndIsSoulbound() public {
+    function test_approvedRequestConnectsAndGivesEachTheOthersType() public {
+        _register(alice, 1);
+        _register(bob, 2);
+        vm.startPrank(minter);
+        vm.expectEmit(true, true, false, false);
+        emit Socemon.ConnectRequested(alice, bob);
+        s.requestConnect(alice, bob);
+        assertEq(s.link(alice, bob), 1);
+        assertEq(s.pendingOf(bob).length, 1);
+        assertEq(s.pendingOf(bob)[0], alice);
+        vm.expectEmit(true, true, false, false);
+        emit Socemon.Connected(alice, bob);
+        s.approveConnect(bob, alice);
+        vm.stopPrank();
+
+        assertEq(s.link(alice, bob), 2);
+        assertEq(s.link(bob, alice), 2);
+        assertEq(s.pendingOf(bob).length, 0);
+        assertEq(s.connectionsOf(alice)[0], bob);
+        assertEq(s.connectionsOf(bob)[0], alice);
+        assertEq(s.eggsOf(alice)[2], 1);
+        assertEq(s.eggsOf(bob)[1], 1);
+        assertEq(s.eggsOf(alice)[1], 0);
+    }
+
+    function test_requestingSomeoneWhoAlreadyRequestedYouConnects() public {
+        _register(alice, 3);
+        _register(bob, 4);
+        vm.startPrank(minter);
+        s.requestConnect(alice, bob);
+        s.requestConnect(bob, alice);
+        vm.stopPrank();
+        assertEq(s.link(alice, bob), 2);
+        assertEq(s.link(bob, alice), 2);
+        assertEq(s.pendingOf(bob).length, 0);
+        assertEq(s.pendingOf(alice).length, 0);
+        assertEq(s.eggsOf(alice)[4], 1);
+        assertEq(s.eggsOf(bob)[3], 1);
+    }
+
+    function test_connectGuards() public {
+        _register(alice, 0);
+        _register(bob, 0);
+        vm.startPrank(minter);
+        vm.expectRevert(Socemon.SelfConnect.selector);
+        s.requestConnect(alice, alice);
+        vm.expectRevert(Socemon.NotRegistered.selector);
+        s.requestConnect(alice, carol);
+        vm.expectRevert(Socemon.NotRegistered.selector);
+        s.requestConnect(carol, alice);
+        vm.expectRevert(Socemon.NoRequest.selector);
+        s.approveConnect(bob, alice);
+        s.requestConnect(alice, bob);
+        vm.expectRevert(Socemon.AlreadyRequested.selector);
+        s.requestConnect(alice, bob);
+        s.approveConnect(bob, alice);
+        vm.expectRevert(Socemon.AlreadyConnected.selector);
+        s.requestConnect(alice, bob);
+        vm.expectRevert(Socemon.AlreadyConnected.selector);
+        s.requestConnect(bob, alice);
+        vm.expectRevert(Socemon.NoRequest.selector);
+        s.approveConnect(bob, alice);
+        vm.stopPrank();
+    }
+
+    function test_hatchUsesOneEggAndIsSoulbound() public {
         _add(1, 1, 10, false);
-        vm.prank(minter);
-        uint256 id = s.hatchEgg(alice, 1);
-        assertEq(id, 1);
+        _register(alice, 0);
+        _egg(alice, 1);
+        vm.expectEmit(true, false, false, true);
+        emit Socemon.EggHatched(alice, 1, 1);
+        assertEq(_hatch(alice, 1), 1);
         assertEq(s.balanceOf(alice, 1), 1);
+        assertEq(s.eggsOf(alice)[1], 0);
+        vm.prank(minter);
+        vm.expectRevert(Socemon.NoEgg.selector);
+        s.hatch(alice, 1);
         vm.prank(alice);
         vm.expectRevert(Socemon.Soulbound.selector);
         s.safeTransferFrom(alice, bob, 1, 1, "");
@@ -58,31 +170,37 @@ contract SocemonTest is Test {
     function test_soldOutPoolFallsBackToWildWithoutSettingTypeBit() public {
         _add(1, 1, 1, false);
         _add(16, 0, 10, false);
-        vm.startPrank(minter);
-        s.hatchEgg(alice, 1);
-        uint256 id = s.hatchEgg(bob, 1);
-        vm.stopPrank();
-        assertEq(id, 16);
+        _register(alice, 0);
+        _register(bob, 0);
+        _egg(alice, 1);
+        _egg(bob, 1);
+        _hatch(alice, 1);
+        assertEq(_hatch(bob, 1), 16);
         assertEq(s.typeMask(bob), 0);
     }
 
-    function test_everythingSoldOutReverts() public {
+    function test_everythingSoldOutRevertsAndKeepsTheEgg() public {
         _add(1, 1, 1, false);
-        vm.startPrank(minter);
-        s.hatchEgg(alice, 1);
+        _register(alice, 0);
+        _register(bob, 0);
+        _egg(alice, 1);
+        _egg(bob, 1);
+        _hatch(alice, 1);
+        vm.prank(minter);
         vm.expectRevert(Socemon.SoldOut.selector);
-        s.hatchEgg(bob, 1);
-        vm.stopPrank();
+        s.hatch(bob, 1);
+        assertEq(s.eggsOf(bob)[1], 1);
     }
 
     function test_supplyCapNeverExceeded() public {
         _add(1, 1, 3, false);
         _add(2, 1, 2, false);
-        vm.startPrank(minter);
-        for (uint256 i; i < 5; i++) s.hatchEgg(makeAddr(vm.toString(i)), 1);
+        _register(alice, 0);
+        for (uint256 i; i < 6; i++) _egg(alice, 1);
+        for (uint256 i; i < 5; i++) _hatch(alice, 1);
+        vm.prank(minter);
         vm.expectRevert(Socemon.SoldOut.selector);
-        s.hatchEgg(alice, 1);
-        vm.stopPrank();
+        s.hatch(alice, 1);
         (, , uint32 minted1, , ) = s.species(1);
         (, , uint32 minted2, , ) = s.species(2);
         assertEq(minted1, 3);
@@ -92,13 +210,13 @@ contract SocemonTest is Test {
     function test_weightedByRemainingSupply() public {
         _add(1, 1, 900, false);
         _add(2, 1, 100, false);
-        vm.startPrank(minter);
+        _register(alice, 0);
         uint256 rare;
         for (uint256 i; i < 300; i++) {
+            _egg(alice, 1);
             vm.prevrandao(bytes32(i));
-            if (s.hatchEgg(alice, 1) == 2) rare++;
+            if (_hatch(alice, 1) == 2) rare++;
         }
-        vm.stopPrank();
         // ~10% expected; wide bounds keep the test stable
         assertGt(rare, 10);
         assertLt(rare, 60);
@@ -107,14 +225,15 @@ contract SocemonTest is Test {
     function test_nexmonUnlocksOnceAfterAllFiveTypes() public {
         _seedRoleTypes();
         _add(19, 7, 100, false);
-        vm.startPrank(minter);
-        for (uint8 pool = 1; pool <= 4; pool++) s.hatchEgg(alice, pool);
+        _register(alice, 0);
+        for (uint8 pool = 1; pool <= 5; pool++) _egg(alice, pool);
+        _egg(alice, 5);
+        for (uint8 pool = 1; pool <= 4; pool++) _hatch(alice, pool);
         assertEq(s.balanceOf(alice, 19), 0);
         vm.expectEmit(true, false, false, false);
         emit Socemon.NexmonUnlocked(alice);
-        s.hatchEgg(alice, 5);
-        s.hatchEgg(alice, 5);
-        vm.stopPrank();
+        _hatch(alice, 5);
+        _hatch(alice, 5);
         assertEq(s.balanceOf(alice, 19), 1);
         assertEq(s.typeMask(alice), 0x3E);
     }
@@ -122,24 +241,29 @@ contract SocemonTest is Test {
     function test_nexmonSoldOutIsSkippedNotReverted() public {
         _seedRoleTypes();
         _add(19, 7, 0, false);
-        vm.startPrank(minter);
-        for (uint8 pool = 1; pool <= 5; pool++) s.hatchEgg(alice, pool);
-        vm.stopPrank();
+        _register(alice, 0);
+        for (uint8 pool = 1; pool <= 5; pool++) _egg(alice, pool);
+        for (uint8 pool = 1; pool <= 5; pool++) _hatch(alice, pool);
         assertEq(s.balanceOf(alice, 19), 0);
     }
 
     function test_eventAndBonusPoolsCannotBeHatched() public {
+        _register(alice, 0);
         vm.startPrank(minter);
         vm.expectRevert(Socemon.InvalidPool.selector);
-        s.hatchEgg(alice, 6);
+        s.hatch(alice, 6);
         vm.expectRevert(Socemon.InvalidPool.selector);
-        s.hatchEgg(alice, 7);
+        s.hatch(alice, 7);
         vm.stopPrank();
     }
 
-    function test_dropOncePerWalletWithinSupplyAndTransferable() public {
+    function test_dropNeedsRegistrationOncePerWalletWithinSupplyAndTransferable() public {
         _add(20, 6, 1, true);
+        _register(alice, 0);
+        _register(bob, 0);
         vm.startPrank(minter);
+        vm.expectRevert(Socemon.NotRegistered.selector);
+        s.mintDrop(carol, 20);
         s.mintDrop(alice, 20);
         vm.expectRevert(Socemon.AlreadyHasDrop.selector);
         s.mintDrop(alice, 20);
@@ -153,9 +277,25 @@ contract SocemonTest is Test {
 
     function test_dropRejectsNonEventSpecies() public {
         _add(1, 1, 10, false);
+        _register(alice, 0);
         vm.prank(minter);
         vm.expectRevert(Socemon.UnknownSpecies.selector);
         s.mintDrop(alice, 1);
+    }
+
+    function test_partnerMustBeOwned() public {
+        _add(1, 1, 10, false);
+        _register(alice, 0);
+        vm.prank(minter);
+        vm.expectRevert(Socemon.NotOwned.selector);
+        s.setPartner(alice, 1);
+        _egg(alice, 1);
+        _hatch(alice, 1);
+        vm.expectEmit(true, false, false, true);
+        emit Socemon.PartnerSet(alice, 1);
+        vm.prank(minter);
+        s.setPartner(alice, 1);
+        assertEq(s.profileOf(alice).partner, 1);
     }
 
     function test_addSpeciesRejectsStarterDuplicateAndBadPool() public {
@@ -170,18 +310,27 @@ contract SocemonTest is Test {
         }
     }
 
-    function test_onlyMinterMintsAndOnlyAdminConfigures() public {
-        bytes32 minterRole = s.MINTER_ROLE();
+    function test_onlyMinterWritesAndOnlyAdminConfigures() public {
+        bytes memory notMinter =
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, s.MINTER_ROLE());
+        bytes memory notAdmin =
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, bytes32(0));
         vm.startPrank(alice);
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, minterRole));
-        s.mintStarter(alice);
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, minterRole));
-        s.hatchEgg(alice, 1);
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, minterRole));
+        vm.expectRevert(notMinter);
+        s.register(alice, "Alice", 0);
+        vm.expectRevert(notMinter);
+        s.requestConnect(alice, bob);
+        vm.expectRevert(notMinter);
+        s.approveConnect(alice, bob);
+        vm.expectRevert(notMinter);
+        s.hatch(alice, 1);
+        vm.expectRevert(notMinter);
         s.mintDrop(alice, 20);
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, bytes32(0)));
+        vm.expectRevert(notMinter);
+        s.setPartner(alice, 0);
+        vm.expectRevert(notAdmin);
         s.addSpecies(new Socemon.SpeciesInit[](0));
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, alice, bytes32(0)));
+        vm.expectRevert(notAdmin);
         s.setBaseURI("x");
         vm.stopPrank();
     }
