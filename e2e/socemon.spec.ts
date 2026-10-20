@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test'
 import { POOL, ROLES, SPECIES, speciesById, speciesInPool, typeName } from '../lib/socemon'
 import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
-import { SOCEMON_ABI, hatchResult } from '../lib/socemon-chain'
-import { CHECKIN_WINDOW_MS, checkinToken, isEventLive, verifyCheckinToken } from '../lib/checkin'
+import { SOCEMON_ABI } from '../lib/abi'
+import { hatchResult } from '../lib/chain'
+import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, verifyCheckinToken } from '../lib/checkin'
+import { errorFor } from '../lib/errors'
+import { readToken, signToken } from '../lib/session'
 
 test.describe('socemon catalog', () => {
   test('ids are 1..20, unique, and match the spec table', () => {
@@ -42,8 +45,8 @@ test.describe('hatch receipts', () => {
   const nexmon = log(encodeEventTopics({ abi: SOCEMON_ABI, eventName: 'NexmonUnlocked', args: { to } }), '0x')
 
   test('reads the hatched species and the Nexmon bonus', () => {
-    expect(hatchResult([hatched(5n)])).toEqual({ id: 5, nexmon: false })
-    expect(hatchResult([hatched(4n), nexmon])).toEqual({ id: 4, nexmon: true })
+    expect(hatchResult([hatched(5n)])).toEqual({ monsterId: 5, nexmon: false })
+    expect(hatchResult([hatched(4n), nexmon])).toEqual({ monsterId: 4, nexmon: true })
   })
 
   test('throws when the receipt has no hatch event', () => {
@@ -80,5 +83,46 @@ test.describe('check-in tokens', () => {
     expect(isEventLive({ startsAt, endsAt }, endsAt.getTime() + 1)).toBe(false)
     expect(isEventLive({ startsAt }, now + 11 * 3600_000)).toBe(true)
     expect(isEventLive({ startsAt, endsAt: null }, now + 13 * 3600_000)).toBe(false)
+  })
+})
+
+test.describe('the event', () => {
+  const now = 1_800_000_000_000
+
+  test('comes from env and is always live without a start time', () => {
+    expect(currentEvent({}, now)).toEqual({ name: 'Monad Blitz', dropId: 20, live: true })
+    const env = { EVENT_NAME: 'Blitz Jakarta', EVENT_DROP_ID: '20', EVENT_STARTS_AT: new Date(now + 3600_000).toISOString() }
+    expect(currentEvent(env, now)).toEqual({ name: 'Blitz Jakarta', dropId: 20, live: false })
+    expect(currentEvent(env, now + 3600_000).live).toBe(true)
+  })
+})
+
+test.describe('api errors', () => {
+  test('reverts map to plain statuses, anything else is a 502', () => {
+    expect(errorFor('NoEgg').status).toBe(409)
+    expect(errorFor('InvalidRole').status).toBe(400)
+    expect(errorFor('NotRegistered').status).toBe(403)
+    expect(errorFor(null)).toEqual({ status: 502, error: 'Monad is busy, try again' })
+    expect(errorFor('SomethingNew').status).toBe(502)
+  })
+
+  test('every revert a user can hit has a message', () => {
+    const userFacing = SOCEMON_ABI.flatMap((x) => (x.type === 'error' ? [x.name] : []))
+      .filter((n) => n !== 'Soulbound' && n !== 'InvalidSpecies')
+    expect(userFacing.length).toBeGreaterThan(10)
+    for (const name of userFacing) expect(errorFor(name).status, name).toBeLessThan(500)
+  })
+})
+
+test.describe('sessions', () => {
+  const secret = 'x'.repeat(32)
+
+  test('a token round-trips and rejects tampering, other secrets and other audiences', async () => {
+    const token = await signToken(secret, 'session', '0xabc', 60)
+    expect(await readToken(secret, 'session', token)).toBe('0xabc')
+    expect(await readToken(secret, 'ticket', token)).toBeNull()
+    expect(await readToken('y'.repeat(32), 'session', token)).toBeNull()
+    expect(await readToken(secret, 'session', `${token.slice(0, -4)}AAAA`)).toBeNull()
+    expect(await readToken(secret, 'session', undefined)).toBeNull()
   })
 })

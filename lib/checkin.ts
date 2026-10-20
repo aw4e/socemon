@@ -32,3 +32,17 @@ export function isEventLive(event: { startsAt: Date; endsAt?: Date | null }, now
   const end = event.endsAt ? event.endsAt.getTime() : event.startsAt.getTime() + DEFAULT_LENGTH_MS
   return now >= start && now <= end
 }
+
+/** The check-in token's event id; each deployment runs one event, so a constant keeps the routes in step. */
+export const CHECKIN_EVENT = 'event'
+
+/** The one event this deployment runs, from env. No EVENT_STARTS_AT means always live (local dev). */
+export function currentEvent(env: Record<string, string | undefined> = process.env, now = Date.now()) {
+  const startsAt = env.EVENT_STARTS_AT ? new Date(env.EVENT_STARTS_AT) : null
+  const endsAt = env.EVENT_ENDS_AT ? new Date(env.EVENT_ENDS_AT) : null
+  return {
+    name: env.EVENT_NAME || 'Monad Blitz',
+    dropId: Number(env.EVENT_DROP_ID || 20),
+    live: startsAt ? isEventLive({ startsAt, endsAt }, now) : true,
+  }
+}
