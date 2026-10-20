@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose'
 
-/* Stateless sessions: signed cookies instead of a session table. The audience keeps a check-in ticket from passing as a session. */
+/* Stateless sessions: signed cookies instead of a session table. The audience keeps a ticket or a nonce from passing as a session. */
 
 export const SESSION_COOKIE = 'socemon_session'
 export const NONCE_COOKIE = 'socemon_nonce'
@@ -9,7 +9,7 @@ export const SESSION_TTL_S = 7 * 24 * 3600
 export const NONCE_TTL_S = 5 * 60
 export const TICKET_TTL_S = 10 * 60
 
-type Audience = 'session' | 'ticket'
+type Audience = 'session' | 'ticket' | 'nonce'
 
 export function sessionSecret(): string {
   const secret = process.env.SESSION_SECRET

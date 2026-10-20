@@ -1,4 +1,6 @@
 import { expect, test } from '@playwright/test'
+import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
+import { createSiweMessage } from 'viem/siwe'
 
 /* Runs against a dev server (npm run test:api starts one). No wallet needed: every case here is a rejection. */
 const WRITES = ['/api/register', '/api/connect', '/api/approve', '/api/hatch', '/api/partner', '/api/checkin']
@@ -34,4 +36,18 @@ test('NFT metadata exists for every species and nothing else', async ({ request 
   expect((await soci.json()).name).toBe('Soci')
   expect((await request.get('/api/socemon/20')).status()).toBe(200)
   for (const bad of ['21', 'abc', '-1']) expect((await request.get(`/api/socemon/${bad}`)).status(), bad).toBe(404)
+})
+
+test('sign-in refuses a nonce the server did not issue', async ({ request, baseURL }) => {
+  const account = privateKeyToAccount(generatePrivateKey())
+  const nonce = 'forgednonce12345'
+  const message = createSiweMessage({
+    address: account.address, chainId: 10143, domain: new URL(baseURL!).host, nonce, uri: baseURL!, version: '1',
+    statement: 'Sign in to Socemon',
+  })
+  const res = await request.post('/api/auth/verify', {
+    data: { message, signature: await account.signMessage({ message }) },
+    headers: { cookie: `socemon_nonce=${nonce}` },
+  })
+  expect(res.status()).toBe(401)
 })
