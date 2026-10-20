@@ -1,0 +1,11 @@
+# never upload local secrets or scratch; contracts/socemon.json is still needed by the app
+.env*
+.superpowers
+.next
+node_modules
+test-results
+playwright-report
+contracts/lib
+contracts/out
+contracts/cache
+contracts/broadcast
