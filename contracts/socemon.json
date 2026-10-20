@@ -1,0 +1,22 @@
+[
+  { "id": 1, "name": "Bitlet", "pool": 1, "tier": "common", "maxSupply": 500, "transferable": false },
+  { "id": 2, "name": "Codrake", "pool": 1, "tier": "rare", "maxSupply": 100, "transferable": false },
+  { "id": 3, "name": "Kernox", "pool": 1, "tier": "epic", "maxSupply": 20, "transferable": false },
+  { "id": 4, "name": "Emberoo", "pool": 2, "tier": "common", "maxSupply": 500, "transferable": false },
+  { "id": 5, "name": "Pitchfox", "pool": 2, "tier": "rare", "maxSupply": 100, "transferable": false },
+  { "id": 6, "name": "Unicorvex", "pool": 2, "tier": "epic", "maxSupply": 20, "transferable": false },
+  { "id": 7, "name": "Huebit", "pool": 3, "tier": "common", "maxSupply": 500, "transferable": false },
+  { "id": 8, "name": "Palettail", "pool": 3, "tier": "rare", "maxSupply": 100, "transferable": false },
+  { "id": 9, "name": "Chromora", "pool": 3, "tier": "epic", "maxSupply": 20, "transferable": false },
+  { "id": 10, "name": "Coinpup", "pool": 4, "tier": "common", "maxSupply": 500, "transferable": false },
+  { "id": 11, "name": "Bullrock", "pool": 4, "tier": "rare", "maxSupply": 100, "transferable": false },
+  { "id": 12, "name": "Aurumane", "pool": 4, "tier": "epic", "maxSupply": 20, "transferable": false },
+  { "id": 13, "name": "Chirpi", "pool": 5, "tier": "common", "maxSupply": 500, "transferable": false },
+  { "id": 14, "name": "Megaphowl", "pool": 5, "tier": "rare", "maxSupply": 100, "transferable": false },
+  { "id": 15, "name": "Chorusaur", "pool": 5, "tier": "epic", "maxSupply": 20, "transferable": false },
+  { "id": 16, "name": "Mossby", "pool": 0, "tier": "common", "maxSupply": 500, "transferable": false },
+  { "id": 17, "name": "Pebblit", "pool": 0, "tier": "common", "maxSupply": 500, "transferable": false },
+  { "id": 18, "name": "Puddlet", "pool": 0, "tier": "common", "maxSupply": 500, "transferable": false },
+  { "id": 19, "name": "Nexmon", "pool": 7, "tier": "legendary", "maxSupply": 100, "transferable": false },
+  { "id": 20, "name": "Blitzmon", "pool": 6, "tier": "event", "maxSupply": 100, "transferable": true }
+]
