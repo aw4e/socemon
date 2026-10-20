@@ -8,10 +8,10 @@ import { EXPLORER_TX, STARTER_ID, TIER_COLOR, speciesById, typeName } from '@/li
 
 export type RevealState =
   | { phase: 'pending'; label: string }
-  | { phase: 'done'; monsterId: number; txHash?: string | null; elapsedMs: number; extra?: string }
+  | { phase: 'done'; monsterId: number; tx?: string; ms: number; extra?: string }
   | { phase: 'error'; message: string }
 
-type Caught = { monsterId: number; txHash?: string | null }
+type Caught = { monsterId: number; tx?: string; ms?: number }
 
 /** Runs a mint call behind the Reveal overlay and times it, so the UI can show how fast Monad confirmed. */
 export function useCatch() {
@@ -22,7 +22,7 @@ export function useCatch() {
     const started = performance.now()
     try {
       const result = await call()
-      setState({ phase: 'done', monsterId: result.monsterId, txHash: result.txHash, elapsedMs: performance.now() - started, extra: extra?.(result) })
+      setState({ phase: 'done', monsterId: result.monsterId, tx: result.tx, ms: result.ms ?? performance.now() - started, extra: extra?.(result) })
       return result
     } catch (err) {
       setState({ phase: 'error', message: err instanceof Error ? err.message : 'Something went wrong' })
@@ -83,7 +83,7 @@ function Pending({ label }: { label: string }) {
   )
 }
 
-function Done({ monsterId, txHash, elapsedMs, extra, onClose }: Extract<RevealState, { phase: 'done' }> & { onClose: () => void }) {
+function Done({ monsterId, tx, ms, extra, onClose }: Extract<RevealState, { phase: 'done' }> & { onClose: () => void }) {
   const species = speciesById(monsterId)
   const color = TIER_COLOR[species?.tier ?? 'common']
   const label = monsterId === STARTER_ID ? 'Starter' : `${species?.tier} · ${typeName(species?.pool ?? 0)}`
@@ -104,11 +104,11 @@ function Done({ monsterId, txHash, elapsedMs, extra, onClose }: Extract<RevealSt
         {extra && <p className="font-sans text-[14px] text-white/80 mt-2 max-w-xs mx-auto">{extra}</p>}
       </div>
       <p className="font-mono text-[12px] text-white/60">
-        Confirmed onchain in {(elapsedMs / 1000).toFixed(1)}s
-        {txHash && (
+        Confirmed onchain in {(ms / 1000).toFixed(1)}s
+        {tx && (
           <>
             {' · '}
-            <a href={`${EXPLORER_TX}${txHash}`} target="_blank" rel="noreferrer" className="underline inline-flex items-center gap-1">
+            <a href={`${EXPLORER_TX}${tx}`} target="_blank" rel="noreferrer" className="underline inline-flex items-center gap-1">
               View tx <ExternalLink className="w-3 h-3" />
             </a>
           </>
