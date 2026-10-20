@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 import { POOL, ROLES, SPECIES, speciesById, speciesInPool, typeName } from '../lib/socemon'
 import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
 import { SOCEMON_ABI } from '../lib/abi'
-import { hatchResult } from '../lib/chain'
+import { gasLimit, hatchResult } from '../lib/chain'
 import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, verifyCheckinToken } from '../lib/checkin'
 import { errorFor } from '../lib/errors'
 import { readToken, signToken } from '../lib/session'
@@ -137,5 +137,13 @@ test.describe('art', () => {
       expect([png.readUInt32BE(16), png.readUInt32BE(20)], `${id} size`).toEqual([512, 512])
       expect([4, 6], `${id} alpha`).toContain(png[25])
     }
+  })
+})
+
+test.describe('relayer gas', () => {
+  /* measured on Monad: a hatch estimated while the roll lands on an owned species (142,991) can be included
+     when it lands on a new one (161,483), because a fresh balance slot costs ~18k more */
+  test('the limit covers a hatch that rolls a new species after estimating an owned one', () => {
+    expect(gasLimit(142_991n)).toBeGreaterThan(161_483n)
   })
 })

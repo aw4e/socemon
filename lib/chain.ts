@@ -19,16 +19,20 @@ function makeWallet() {
 }
 let wallet: ReturnType<typeof makeWallet> | null = null
 
+/** Monad bills the gas limit, so the buffer stays small. The flat 25k covers a hatch whose roll lands on a species the
+    trainer does not own yet at inclusion (a fresh balance slot, ~18k more) after estimating one they do own. */
+export const gasLimit = (estimate: bigint) => estimate + estimate / 10n + 25_000n
+
 type Write = ContractFunctionName<typeof SOCEMON_ABI, 'nonpayable'>
 
-/** Sends one write as the relayer and waits for its receipt. Monad bills the gas limit, so the buffer stays at 10%. */
+/** Sends one write as the relayer and waits for its receipt. */
 export async function relay<F extends Write>(functionName: F, args: ContractFunctionArgs<typeof SOCEMON_ABI, 'nonpayable', F>) {
   const walletClient = (wallet ??= makeWallet())
   /* viem cannot narrow a generic function name; the signature above keeps every call site typed */
   const params = { address: socemonAddress(), abi: SOCEMON_ABI, functionName, args, account: walletClient.account } as never
   const started = Date.now()
   const gas = await publicClient.estimateContractGas(params)
-  const receipt = await walletClient.writeContractSync({ ...(params as object), gas: gas + gas / 10n } as never)
+  const receipt = await walletClient.writeContractSync({ ...(params as object), gas: gasLimit(gas) } as never)
   if (receipt.status !== 'success') {
     /* a concurrent request changed state between estimate and inclusion; re-simulating surfaces the revert name */
     await publicClient.simulateContract(params)
