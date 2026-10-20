@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 import { POOL, ROLES, SPECIES, speciesById, speciesInPool, typeName } from '../lib/socemon'
 import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
@@ -124,5 +125,17 @@ test.describe('sessions', () => {
     expect(await readToken('y'.repeat(32), 'session', token)).toBeNull()
     expect(await readToken(secret, 'session', `${token.slice(0, -4)}AAAA`)).toBeNull()
     expect(await readToken(secret, 'session', undefined)).toBeNull()
+  })
+})
+
+test.describe('art', () => {
+  /* ponytail: sample art only (Soci, Bitlet, Codrake); MonsterImage shows the name for the rest. Add ids as art lands. */
+  test('the sample species have a 512px PNG with transparency', () => {
+    for (const id of [0, 1, 2]) {
+      const png = readFileSync(`public/socemon/${id}.png`)
+      expect(png.subarray(1, 4).toString(), `${id}`).toBe('PNG')
+      expect([png.readUInt32BE(16), png.readUInt32BE(20)], `${id} size`).toEqual([512, 512])
+      expect([4, 6], `${id} alpha`).toContain(png[25])
+    }
   })
 })
