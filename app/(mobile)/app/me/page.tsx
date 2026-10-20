@@ -29,6 +29,7 @@ export default function MePage() {
   }
 
   const links = [
+    { href: '/app/friends', label: 'Friends', external: false },
     { href: `/u/${user}`, label: 'Public profile', external: false },
     { href: `${EXPLORER}${user}`, label: 'My wallet on Monadscan', external: true },
     { href: `${EXPLORER}${socemonAddress()}`, label: 'Socemon contract', external: true },

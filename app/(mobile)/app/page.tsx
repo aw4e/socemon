@@ -20,7 +20,7 @@ export default function HomePage() {
   const partner = Number(profile?.partner ?? 0n)
   const eggs = trainer.eggs ?? []
   const stats = [
-    { href: '/app/qr', value: trainer.connections?.length ?? 0, label: 'connections' },
+    { href: '/app/friends', value: trainer.connections?.length ?? 0, label: 'friends' },
     { href: '/app/dex', value: `${typesCaught(trainer.owned)}/5`, label: 'types' },
     { href: '/app/dex', value: `${trainer.owned.size}/${SPECIES.length + 1}`, label: 'caught' },
   ]
@@ -78,7 +78,7 @@ export default function HomePage() {
         {eggs.every((n) => n === 0) ? (
           <p className="font-sans text-[13px] text-text-secondary">
             Meet people. Every new connection gives you both an Egg of the other person&apos;s type.{' '}
-            <Link href="/app/qr" className="text-text-accent">Show your QR</Link>
+            <Link href="/app/qr" className="text-text-accent">Scan someone</Link>
           </p>
         ) : (
           <ul className="space-y-2">

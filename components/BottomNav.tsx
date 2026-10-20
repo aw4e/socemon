@@ -7,12 +7,12 @@ import { cn } from '@/lib/utils'
 const TABS = [
   { href: '/app', label: 'Home', Icon: House },
   { href: '/app/dex', label: 'Socédex', Icon: BookOpen },
-  { href: '/app/qr', label: 'My QR', Icon: QrCode },
+  { href: '/app/qr', label: 'Scan', Icon: QrCode },
   { href: '/app/event', label: 'Event', Icon: Ticket },
   { href: '/app/me', label: 'Me', Icon: User },
 ] as const
 
-/* Floating tab bar. My QR is the raised center button because connecting is the main thing you do at an event.
+/* Floating tab bar. Scan is the raised center button because connecting is the main thing you do at an event.
    `requests` puts a badge on Home while connection requests wait for approval. */
 export function BottomNav({ requests }: { requests: number }) {
   const path = usePathname()

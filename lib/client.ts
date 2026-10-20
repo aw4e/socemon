@@ -87,15 +87,23 @@ export function useTrainer(address: Address | null | undefined, refetchInterval?
   }
 }
 
-/** Display names for a list of addresses, falling back to the short address. */
-export function useNames(addresses: readonly Address[] | undefined) {
+export type Profile = { name: string; role: number; partner: bigint; registered: boolean }
+
+/** Profiles for a list of addresses in one multicall. */
+export function useProfiles(addresses: readonly Address[] | undefined) {
   const list = addresses ?? []
   const { data } = useReadContracts({
     allowFailure: false,
     contracts: list.map((a) => ({ address: socemonAddress(), abi: SOCEMON_ABI, chainId: monadTestnet.id, functionName: 'profileOf', args: [a] }) as const),
     query: { enabled: list.length > 0 },
   })
-  return (a: Address) => (data?.[list.indexOf(a)] as { name: string } | undefined)?.name || shortAddress(a)
+  return (a: Address) => data?.[list.indexOf(a)] as Profile | undefined
+}
+
+/** Display names for a list of addresses, falling back to the short address. */
+export function useNames(addresses: readonly Address[] | undefined) {
+  const profileOf = useProfiles(addresses)
+  return (a: Address) => profileOf(a)?.name || shortAddress(a)
 }
 
 /** The signed-in, registered trainer for every /app page; the app layout provides it once the Gate lets them in. */

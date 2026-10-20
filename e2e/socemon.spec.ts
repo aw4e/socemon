@@ -6,6 +6,7 @@ import { SOCEMON_ABI } from '../lib/abi'
 import { gasLimit, hatchResult } from '../lib/chain'
 import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, verifyCheckinToken } from '../lib/checkin'
 import { errorFor } from '../lib/errors'
+import { parseScan } from '../lib/scan'
 import { readToken, signToken } from '../lib/session'
 
 test.describe('socemon catalog', () => {
@@ -151,5 +152,26 @@ test.describe('relayer gas', () => {
      when it lands on a new one (161,483), because a fresh balance slot costs ~18k more */
   test('the limit covers a hatch that rolls a new species after estimating an owned one', () => {
     expect(gasLimit(142_991n)).toBeGreaterThan(161_483n)
+  })
+})
+
+test.describe('scanning', () => {
+  const origin = 'https://socemon.example'
+  const a = '0x1a627F3F4A838B4948adb1bFF2b5179a70707CA3'
+
+  test('profile links, bare addresses and wallet QR codes open a trainer', () => {
+    expect(parseScan(`${origin}/u/${a}`, origin)).toEqual({ kind: 'trainer', address: a })
+    expect(parseScan(`${origin}/u/${a.toLowerCase()}/`, origin)).toEqual({ kind: 'trainer', address: a })
+    expect(parseScan(`  ${a.toLowerCase()} `, origin)).toEqual({ kind: 'trainer', address: a })
+    expect(parseScan(`ethereum:${a}@10143`, origin)).toEqual({ kind: 'trainer', address: a })
+  })
+
+  test('the Event Wall code goes to check-in', () => {
+    expect(parseScan(`${origin}/api/checkin/ticket?t=abc`, origin)).toEqual({ kind: 'checkin', path: '/api/checkin/ticket?t=abc' })
+  })
+
+  test('anything else is ignored, so a planted QR never opens a foreign link', () => {
+    const junk = ['', 'hello', `https://evil.example/u/${a}`, `${origin}/u/0x123`, `${origin}/api/checkin/ticket`, `${origin}/app`, 'javascript:alert(1)']
+    for (const text of junk) expect(parseScan(text, origin), text).toBeNull()
   })
 })
