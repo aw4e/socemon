@@ -60,6 +60,7 @@ Kept from v1: ERC-1155 + AccessControl, the species catalog from `contracts/soce
 - `_incoming[user]`: addresses that requested `user` (append-only).
 - `_connections[user]`: connected addresses.
 - `_eggs[user][pool]` for pools 0..5.
+- `claimedDrop[user][id]`: event drops are once per trainer, tracked apart from balances because drops are tradeable (a gifted Blitzmon must not block check-in, and giving one away must not allow a second claim).
 
 ### 4.3 Writes (all `onlyRole(MINTER_ROLE)`; the user is the first argument)
 
@@ -216,7 +217,7 @@ Pipeline: download each image, move it to `public/socemon/{id}.png`, downscale w
 | Spam registrations or requests drain the minter's testnet MON | Rate limiting per session; faucet top-ups meanwhile |
 | Two accounts can connect each other to farm Eggs | Require a mutual in-person proof (NFC tap) later |
 | No decline; ignored requests stay pending | A `decline` function |
-| A ticket cookie lets several accounts on one device check in within 10 minutes | Bind tickets to an address after sign-in |
+| Anyone in the room can script many throwaway wallets, each fetching a ticket from the projector token, and claim a drop per wallet (the ticket is a bearer cookie, so binding it to an address would not stop this) | Proof of personhood or a host-approved attendee list |
 | The wall only sees logs while it polls; a wall offline for more than ~40 s skips feed items (counts stay correct) | An indexer |
 | One event per deployment | An onchain event registry |
 | Accounts under the 10 MON reserve are rate-limited by Monad; the minter needs a top-up before the demo | Keep the minter above 10 MON |

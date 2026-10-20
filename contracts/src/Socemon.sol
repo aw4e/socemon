@@ -52,6 +52,8 @@ contract Socemon is ERC1155, AccessControl {
     mapping(address => uint8) public typeMask;
     /// link[a][b]: 0 none, 1 a requested b, 2 connected (set both ways).
     mapping(address => mapping(address => uint8)) public link;
+    /// Event drops are once per trainer, tracked apart from balances because drops are tradeable.
+    mapping(address => mapping(uint256 => bool)) public claimedDrop;
     mapping(uint8 => uint256[]) private _pools;
     mapping(address => Profile) private _profiles;
     mapping(address => address[]) private _incoming;
@@ -165,8 +167,9 @@ contract Socemon is ERC1155, AccessControl {
         if (!_profiles[user].registered) revert NotRegistered();
         Species storage s = species[id];
         if (!s.exists || s.pool != POOL_EVENT) revert UnknownSpecies();
-        if (balanceOf(user, id) > 0) revert AlreadyHasDrop();
+        if (claimedDrop[user][id]) revert AlreadyHasDrop();
         if (s.minted >= s.maxSupply) revert SoldOut();
+        claimedDrop[user][id] = true;
         s.minted++;
         _mint(user, id, 1, "");
         emit DropMinted(user, id);

@@ -4,7 +4,7 @@ Social on Monad. Catch your network.
 
 Socemon is a monster collection you play in real life. Meet someone at an event, connect, and you both get an Egg of the other person's type. Hatch it, fill your Socédex, and show up at events for drops you can only catch there. Built for Monad Blitz.
 
-**Contract (Monad testnet, chain 10143):** [`0x8AC5a04a56a1715A0348F929961679Dd613b2865`](https://testnet.monadscan.com/address/0x8AC5a04a56a1715A0348F929961679Dd613b2865), verified source.
+**Contract (Monad testnet, chain 10143):** [`0x567A2Fcb2EF5e54d197a70F9037e7433561ce7Bd`](https://testnet.monadscan.com/address/0x567A2Fcb2EF5e54d197a70F9037e7433561ce7Bd), verified source.
 
 ## How it plays
 

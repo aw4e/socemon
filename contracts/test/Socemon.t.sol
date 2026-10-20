@@ -275,6 +275,23 @@ contract SocemonTest is Test {
         assertEq(s.balanceOf(bob, 20), 1);
     }
 
+    function test_dropIsOncePerTrainerEvenAfterTransfers() public {
+        _add(20, 6, 10, true);
+        _register(alice, 0);
+        _register(bob, 0);
+        vm.prank(minter);
+        s.mintDrop(alice, 20);
+        vm.prank(alice);
+        s.safeTransferFrom(alice, bob, 20, 1, "");
+        vm.startPrank(minter);
+        vm.expectRevert(Socemon.AlreadyHasDrop.selector);
+        s.mintDrop(alice, 20);
+        s.mintDrop(bob, 20);
+        vm.stopPrank();
+        assertEq(s.balanceOf(bob, 20), 2);
+        assertTrue(s.claimedDrop(bob, 20));
+    }
+
     function test_dropRejectsNonEventSpecies() public {
         _add(1, 1, 10, false);
         _register(alice, 0);
