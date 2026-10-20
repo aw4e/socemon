@@ -51,3 +51,11 @@ test('sign-in refuses a nonce the server did not issue', async ({ request, baseU
   })
   expect(res.status()).toBe(401)
 })
+
+test('every page renders and the landing leads into the app', async ({ request }) => {
+  const pages = ['/', '/app', '/app/dex', '/app/qr', '/app/event', '/app/me', '/u/0x0000000000000000000000000000000000000001', '/checkin']
+  for (const path of pages) expect((await request.get(path)).status(), path).toBe(200)
+  const landing = await (await request.get('/')).text()
+  expect(landing).toContain('Launch app')
+  expect(landing).toContain('href="/app"')
+})

@@ -37,9 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${outfit.variable} ${playfair.variable} ${geistMono.variable}`}>
       <body className="font-sans text-text-primary antialiased">
         <Web3Provider>
-          <MotionProvider>
-            <div className="app-column mx-auto w-full max-w-[448px] min-h-svh bg-bg-base overflow-x-clip">{children}</div>
-          </MotionProvider>
+          <MotionProvider>{children}</MotionProvider>
         </Web3Provider>
       </body>
     </html>

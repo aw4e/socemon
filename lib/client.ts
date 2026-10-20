@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { zeroAddress, type Address } from 'viem'
 import { monadTestnet } from 'viem/chains'
 import { createSiweMessage } from 'viem/siwe'
@@ -96,4 +96,35 @@ export function useNames(addresses: readonly Address[] | undefined) {
     query: { enabled: list.length > 0 },
   })
   return (a: Address) => (data?.[list.indexOf(a)] as { name: string } | undefined)?.name || shortAddress(a)
+}
+
+/** The signed-in, registered trainer for every /app page; the app layout provides it once the Gate lets them in. */
+export const UserContext = createContext<Address | null>(null)
+
+export function useUser(): Address {
+  const user = useContext(UserContext)
+  if (!user) throw new Error('useUser must be used inside the app layout')
+  return user
+}
+
+/** Runs one write at a time with a busy key and a status note, then refreshes the trainer's reads. */
+export function useAct(refetch: () => unknown) {
+  const [busy, setBusy] = useState('')
+  const [note, setNote] = useState('')
+
+  async function act(key: string, call: () => Promise<unknown>, done: string) {
+    setBusy(key)
+    setNote('')
+    try {
+      await call()
+      setNote(done)
+      await refetch()
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : 'Something went wrong')
+    } finally {
+      setBusy('')
+    }
+  }
+
+  return { busy, note, act }
 }

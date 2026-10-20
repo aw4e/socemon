@@ -50,3 +50,7 @@ export function speciesById(id: number): SocemonSpecies | undefined {
 export const speciesInPool = (pool: number) => SPECIES.filter((s) => s.pool === pool)
 
 export const imageFor = (id: number) => `/socemon/${id}.png`
+
+/** How many of the five role types a trainer has caught at least one species of (Nexmon needs all five). */
+export const typesCaught = (owned: Set<number>) =>
+  ROLES.filter((r) => r.role !== POOL.wild && speciesInPool(r.role).some((s) => owned.has(s.id))).length

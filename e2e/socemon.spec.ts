@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
-import { POOL, ROLES, SPECIES, speciesById, speciesInPool, typeName } from '../lib/socemon'
+import { POOL, ROLES, SPECIES, speciesById, speciesInPool, typeName, typesCaught } from '../lib/socemon'
 import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
 import { SOCEMON_ABI } from '../lib/abi'
 import { gasLimit, hatchResult } from '../lib/chain'
@@ -29,6 +29,12 @@ test.describe('socemon catalog', () => {
     expect(ROLES.map((r) => r.label)).toEqual(['Other', 'Developer', 'Founder', 'Designer', 'Investor', 'Community'])
     expect(typeName(POOL.event)).toBe('Event')
     expect(typeName(POOL.bonus)).toBe('Legendary')
+  })
+
+  test('types caught counts the five role types only', () => {
+    expect(typesCaught(new Set())).toBe(0)
+    expect(typesCaught(new Set([0, 16, 19, 20]))).toBe(0)
+    expect(typesCaught(new Set([1, 2, 4, 15]))).toBe(3)
   })
 })
 

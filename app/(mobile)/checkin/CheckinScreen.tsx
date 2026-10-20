@@ -46,7 +46,7 @@ export function CheckinScreen({ eventName, dropId, expired }: { eventName: strin
           <div className="flex flex-col items-center text-center gap-4 py-10">
             {teaser}
             {caught ? (
-              <Link href="/" className="font-sans text-[15px] font-medium text-text-accent">See it in your Socédex</Link>
+              <Link href="/app/dex" className="font-sans text-[15px] font-medium text-text-accent">See it in your Socédex</Link>
             ) : (
               <Button size="lg" loading={reveal.state?.phase === 'pending'} onClick={catchDrop}>Catch {drop?.name}</Button>
             )}

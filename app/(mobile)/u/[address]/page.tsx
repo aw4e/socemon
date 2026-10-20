@@ -35,7 +35,7 @@ export default function TrainerPage() {
     return (
       <main className="min-h-svh flex flex-col items-center justify-center gap-3 px-8 text-center">
         <h1 className="font-display text-[26px] text-text-primary">No trainer here yet</h1>
-        <Link href="/" className="font-sans text-[14px] font-medium text-text-accent">Catch your own Socemon</Link>
+        <Link href="/app" className="font-sans text-[14px] font-medium text-text-accent">Catch your own Socemon</Link>
       </main>
     )
   }
@@ -94,7 +94,7 @@ function ConnectBox({ viewer, target, name }: { viewer: Address; target: Address
   if (viewer === target) {
     return (
       <p className="text-center font-sans text-[14px] text-text-secondary">
-        This is your profile. <Link href="/" className="text-text-accent">Back home</Link>
+        This is your profile. <Link href="/app" className="text-text-accent">Back home</Link>
       </p>
     )
   }

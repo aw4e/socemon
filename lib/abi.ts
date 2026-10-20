@@ -13,6 +13,7 @@ export const SOCEMON_ABI = parseAbi([
   'function pendingOf(address user) view returns (address[])',
   'function connectionsOf(address user) view returns (address[])',
   'function link(address a, address b) view returns (uint8)',
+  'function claimedDrop(address user, uint256 id) view returns (bool)',
   'function species(uint256 id) view returns (uint8 pool, uint32 maxSupply, uint32 minted, bool transferable, bool exists)',
   'function balanceOfBatch(address[] accounts, uint256[] ids) view returns (uint256[])',
   'event Registered(address indexed user, string name, uint8 role)',

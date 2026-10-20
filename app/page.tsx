@@ -1,193 +1,154 @@
-'use client'
-import { useState } from 'react'
-import QRCode from 'qrcode'
-import { Egg, LogOut, QrCode } from 'lucide-react'
-import type { Address } from 'viem'
+import Link from 'next/link'
+import { ArrowRight, Egg, QrCode, Ticket } from 'lucide-react'
 import { Logo } from '@/components/brand/Logo'
-import { Gate } from '@/components/Gate'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
-import { Reveal, useCatch } from '@/components/socemon/Reveal'
-import { Button } from '@/components/ui/Button'
-import { post, useNames, useSession, useTrainer, type Catch } from '@/lib/client'
-import { POOL, ROLES, SPECIES, STARTER, STARTER_ID, TIER_COLOR, speciesById, speciesInPool, typeName } from '@/lib/socemon'
+import { POOL, ROLES, TIER_COLOR, speciesById } from '@/lib/socemon'
 
-const DEX = [
-  { title: 'Starter', list: [STARTER] },
-  ...[POOL.byte, POOL.blaze, POOL.prism, POOL.gold, POOL.echo, POOL.wild, POOL.bonus, POOL.event].map((pool) => ({
-    title: typeName(pool),
-    list: speciesInPool(pool),
-  })),
+const STEPS = [
+  { Icon: QrCode, title: 'Meet', body: 'Show your QR. A friend scans it and taps Connect, you approve, and you both get an Egg of each other’s type.' },
+  { Icon: Egg, title: 'Hatch', body: 'Eggs hatch into one of 18 species, rarer ones weighted by supply. Catch all five types and Nexmon joins you.' },
+  { Icon: Ticket, title: 'Show up', body: 'Scan the Event Wall to catch the event drop. Its QR changes every 30 seconds, so only people in the room get one.' },
 ]
 
-const hero = (
-  <>
-    <Logo height={28} />
-    <MonsterImage id={STARTER_ID} size={160} />
-    <p className="font-display text-[30px] leading-tight text-text-primary">Catch your network.</p>
-    <p className="font-sans text-[14px] text-text-secondary max-w-xs">
-      Meet people, hatch their type, fill your Socédex. Every Socemon is an NFT on Monad.
-    </p>
-  </>
-)
+const ORGANIZERS = [
+  'A rotating QR on the projector, so every check-in happened in the room',
+  'Every check-in is an onchain event on Monad: attendance you can verify',
+  'A limited, tradeable drop gives people a reason to come',
+  'Attendees never need gas or tokens; the relayer pays',
+]
 
-export default function HomePage() {
+/* ponytail: sample art only; the rest of the roster fills in as portraits land */
+const SAMPLES = [0, 1, 2]
+
+const appButton = 'inline-flex items-center gap-2 rounded-full bg-primary text-primary-fg font-sans font-medium'
+
+/* Public landing: what Socemon is, how it plays, and why event organizers want it. No wallet needed here. */
+export default function LandingPage() {
+  const contract = process.env.NEXT_PUBLIC_SOCEMON_ADDRESS
   return (
-    <main className="px-5">
-      <Gate hero={hero}>{(user) => <Home user={user} />}</Gate>
-    </main>
-  )
-}
-
-/* Everything a trainer does: partner, QR to connect, requests to approve, Eggs to hatch, and the Socédex. */
-function Home({ user }: { user: Address }) {
-  const { signOut } = useSession()
-  const trainer = useTrainer(user, 5_000)
-  const nameOf = useNames(trainer.pending)
-  const reveal = useCatch()
-  const [qr, setQr] = useState('')
-  const [busy, setBusy] = useState('')
-  const [note, setNote] = useState('')
-
-  const profile = trainer.profile
-  const partner = Number(profile?.partner ?? 0n)
-  const eggs = trainer.eggs ?? []
-  const types = ROLES.slice(1).filter((r) => speciesInPool(r.role).some((s) => trainer.owned.has(s.id))).length
-
-  async function act(key: string, call: () => Promise<unknown>, done: string) {
-    setBusy(key)
-    setNote('')
-    try {
-      await call()
-      setNote(done)
-      await trainer.refetch()
-    } catch (err) {
-      setNote(err instanceof Error ? err.message : 'Something went wrong')
-    } finally {
-      setBusy('')
-    }
-  }
-
-  async function toggleQr() {
-    setQr(qr ? '' : await QRCode.toDataURL(`${window.location.origin}/u/${user}`, { margin: 1, width: 560 }))
-  }
-
-  return (
-    <div className="pb-10">
-      <header className="flex items-center justify-between h-16">
-        <Logo height={22} />
-        <button onClick={signOut} aria-label="Sign out" className="p-2 -mr-2 text-text-tertiary">
-          <LogOut className="w-5 h-5" />
-        </button>
+    <div className="min-h-svh bg-bg-base text-text-primary">
+      <header className="mx-auto max-w-5xl flex items-center justify-between px-5 h-16">
+        <Logo height={24} />
+        <Link href="/app" className={`${appButton} h-9 px-4 text-[14px]`}>Launch app</Link>
       </header>
 
-      <section className="flex flex-col items-center text-center pt-2">
-        <MonsterImage id={partner} size={180} />
-        <p className="font-display text-[26px] text-text-primary mt-2">{profile?.name}</p>
-        <p className="font-sans text-[13px] text-text-secondary">
-          {ROLES[profile?.role ?? 0]?.label} · partner {speciesById(partner)?.name}
-        </p>
-        <Button variant="secondary" size="sm" className="mt-4" onClick={toggleQr}>
-          <QrCode className="w-4 h-4" /> {qr ? 'Hide my QR' : 'My QR'}
-        </Button>
-        {qr && (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={qr} alt="QR code to your Socemon profile" className="mt-4 w-64 rounded-2xl bg-white p-3" />
-            <p className="font-sans text-[12px] text-text-tertiary mt-2">Friends scan this to connect with you.</p>
-          </>
-        )}
-      </section>
-
-      {note && (
-        <p role="status" className="mt-6 rounded-2xl bg-[var(--fill)] px-4 py-3 font-sans text-[13px] text-text-secondary">{note}</p>
-      )}
-
-      {!!trainer.pending?.length && (
-        <section className="mt-8">
-          <h2 className="eyebrow mb-3">Requests</h2>
-          <ul className="space-y-2">
-            {trainer.pending.map((from) => (
-              <li key={from} className="flex items-center gap-3 rounded-[14px] bg-[var(--fill)] px-4 py-3">
-                <p className="flex-1 min-w-0 font-sans text-[14px] text-text-primary truncate">{nameOf(from)}</p>
-                <Button
-                  size="sm"
-                  loading={busy === from}
-                  disabled={!!busy}
-                  onClick={() => act(from, () => post('/api/approve', { from }), `Connected with ${nameOf(from)}. You both got an Egg.`)}
-                >
-                  Approve
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className="mt-8">
-        <h2 className="eyebrow mb-3">Eggs</h2>
-        {eggs.every((n) => n === 0) ? (
-          <p className="font-sans text-[13px] text-text-secondary">
-            Meet people. Every new connection gives you both an Egg of the other person&apos;s type.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {eggs.map((count, pool) =>
-              count > 0 ? (
-                <li key={pool} className="flex items-center gap-3 rounded-[14px] bg-[var(--fill)] px-4 py-3">
-                  <Egg className="w-5 h-5 text-text-accent shrink-0" />
-                  <p className="flex-1 font-sans text-[14px] text-text-primary">{typeName(pool)} Egg × {count}</p>
-                  <Button
-                    size="sm"
-                    disabled={!!busy || reveal.state?.phase === 'pending'}
-                    onClick={() =>
-                      reveal.run(`Hatching a ${typeName(pool)} Egg…`, () => post<Catch>('/api/hatch', { pool }), (r) =>
-                        r.nexmon ? 'You met every type. Nexmon joined you too!' : undefined,
-                      )
-                    }
-                  >
-                    Hatch
-                  </Button>
-                </li>
-              ) : null,
-            )}
-          </ul>
-        )}
-      </section>
-
-      <p className="mt-8 font-mono text-[12px] text-text-tertiary text-center">
-        {trainer.connections?.length ?? 0} connections · types {types}/5 · caught {trainer.owned.size}/{SPECIES.length + 1}
-      </p>
-
-      <section className="mt-6 space-y-6">
-        <div>
-          <h2 className="eyebrow">Socédex</h2>
-          <p className="font-sans text-[12px] text-text-tertiary mt-1">Tap a Socemon you caught to make it your partner.</p>
-        </div>
-        {DEX.map(({ title, list }) => (
-          <div key={title}>
-            <p className="font-sans text-[11px] text-text-tertiary mb-2">{title}</p>
-            <div className="grid grid-cols-3 gap-3">
-              {list.map((s) => {
-                const has = trainer.owned.has(s.id)
-                return (
-                  <button
-                    key={s.id}
-                    disabled={!has || !!busy || s.id === partner}
-                    onClick={() => act(`p${s.id}`, () => post('/api/partner', { id: s.id }), `${s.name} is your partner now.`)}
-                    className="flex flex-col items-center gap-1 rounded-[16px] bg-[var(--fill)] p-3 disabled:cursor-default"
-                    style={s.id === partner ? { outline: `2px solid ${TIER_COLOR[s.tier]}` } : undefined}
-                  >
-                    <MonsterImage id={s.id} size={72} silhouette={!has} />
-                    <p className="font-sans text-[12px] text-text-primary truncate max-w-full">{has ? s.name : '???'}</p>
-                  </button>
-                )
-              })}
+      <main className="mx-auto max-w-5xl px-5">
+        <section className="grid md:grid-cols-[1.1fr_1fr] items-center gap-8 pt-10 pb-16">
+          <div className="text-center md:text-left">
+            <p className="eyebrow">Built for Monad Blitz</p>
+            <h1 className="font-display text-[44px] md:text-[60px] leading-[1.05] tracking-[-0.03em] mt-3">
+              Catch your <span className="serif-accent">network</span>.
+            </h1>
+            <p className="font-sans text-[16px] text-text-secondary mt-4 max-w-md mx-auto md:mx-0">
+              Socemon turns the people you meet into monsters you collect. Every connection hatches an Egg, every event has
+              its own drop, and all of it lives onchain on Monad.
+            </p>
+            <div className="flex flex-wrap gap-3 mt-7 justify-center md:justify-start">
+              <Link href="/app" className={`${appButton} h-12 px-6 text-[15px]`}>
+                Launch app <ArrowRight className="w-4 h-4" />
+              </Link>
+              <a href="#how" className="inline-flex items-center h-12 px-6 rounded-full border border-(--border-default) font-sans text-[15px]">
+                How it plays
+              </a>
             </div>
           </div>
-        ))}
-      </section>
+          <div className="flex justify-center">
+            <div className="rounded-full p-6" style={{ background: `radial-gradient(circle, ${TIER_COLOR.event}40 0%, transparent 70%)` }}>
+              <MonsterImage id={0} size={300} />
+            </div>
+          </div>
+        </section>
 
-      <Reveal state={reveal.state} onClose={() => { reveal.close(); trainer.refetch() }} />
+        <section id="how" className="py-12 scroll-mt-16">
+          <h2 className="font-display text-[30px] tracking-[-0.02em] text-center">How it plays</h2>
+          <div className="grid md:grid-cols-3 gap-4 mt-8">
+            {STEPS.map(({ Icon, title, body }, i) => (
+              <div key={title} className="surface rounded-3xl p-6">
+                <div className="flex items-center gap-3">
+                  <span className="w-10 h-10 rounded-2xl bg-[var(--accent-primary-dim)] text-text-accent flex items-center justify-center">
+                    <Icon className="w-5 h-5" />
+                  </span>
+                  <span className="font-mono text-[12px] text-text-tertiary">0{i + 1}</span>
+                </div>
+                <h3 className="font-display text-[22px] mt-4">{title}</h3>
+                <p className="font-sans text-[14px] text-text-secondary mt-2">{body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="py-12">
+          <h2 className="font-display text-[30px] tracking-[-0.02em] text-center">Your role is your type</h2>
+          <p className="font-sans text-[15px] text-text-secondary text-center mt-3 max-w-xl mx-auto">
+            Pick what you do when you join. Everyone who connects with you gets an Egg of your type.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-8">
+            {ROLES.map((r) => (
+              <div key={r.role} className="surface rounded-2xl px-4 py-4 text-center">
+                <p className="font-display text-[18px]">{r.type}</p>
+                <p className="font-sans text-[12px] text-text-tertiary">{r.role === POOL.wild ? 'Everyone else' : r.label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="py-12">
+          <h2 className="font-display text-[30px] tracking-[-0.02em] text-center">Meet the first Socemon</h2>
+          <div className="grid grid-cols-3 gap-4 mt-8 max-w-2xl mx-auto">
+            {SAMPLES.map((id) => {
+              const s = speciesById(id)
+              return (
+                <div key={id} className="flex flex-col items-center text-center">
+                  <MonsterImage id={id} size={160} />
+                  <p className="font-display text-[18px] mt-2">{s?.name}</p>
+                  <p className="font-sans text-[12px]" style={{ color: TIER_COLOR[s?.tier ?? 'common'] }}>
+                    {id === 0 ? 'Starter' : s?.tier}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        <section className="py-12">
+          <div className="rounded-[32px] p-8 md:p-12 text-white" style={{ background: 'linear-gradient(160deg, #0B0C14 0%, #1B1245 100%)' }}>
+            <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-white/60">For event organizers</p>
+            <h2 className="font-display text-[30px] md:text-[38px] leading-tight tracking-[-0.02em] mt-3 max-w-xl">
+              Give people a reason to show up, and proof that they did.
+            </h2>
+            <ul className="mt-6 space-y-3 max-w-xl">
+              {ORGANIZERS.map((line) => (
+                <li key={line} className="flex gap-3 font-sans text-[15px] text-white/80">
+                  <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[#836EF9] shrink-0" />
+                  {line}
+                </li>
+              ))}
+            </ul>
+            <a
+              href="https://github.com/riorblade/socemon"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 h-11 px-5 mt-8 rounded-full bg-white text-[#0B0C14] font-sans font-medium text-[14px]"
+            >
+              Run it at your event <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <footer className="mx-auto max-w-5xl px-5 py-10 flex flex-wrap gap-x-6 gap-y-2 justify-between font-sans text-[13px] text-text-tertiary border-t border-(--border-subtle)">
+        <span>Socemon · Social on Monad · Built for Monad Blitz</span>
+        <span className="flex gap-4">
+          {contract && (
+            <a href={`https://testnet.monadscan.com/address/${contract}`} target="_blank" rel="noreferrer" className="hover:text-text-primary">
+              Contract
+            </a>
+          )}
+          <a href="https://github.com/riorblade/socemon" target="_blank" rel="noreferrer" className="hover:text-text-primary">
+            GitHub
+          </a>
+        </span>
+      </footer>
     </div>
   )
 }
