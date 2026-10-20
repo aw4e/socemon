@@ -29,7 +29,9 @@ createAppKit({
   features: { analytics: process.env.NODE_ENV === 'production' },
   themeMode: 'dark',
   themeVariables: {
-    '--w3m-font-family': 'var(--font-outfit), -apple-system, BlinkMacSystemFont, system-ui, sans-serif',  },
+    '--w3m-font-family': 'var(--font-nunito), ui-rounded, system-ui, sans-serif',
+    '--w3m-accent': '#836EF9',
+  },
 })
 
 export function Web3Provider({ children }: { children: React.ReactNode }) {

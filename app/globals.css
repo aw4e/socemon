@@ -1,251 +1,75 @@
 @import "tailwindcss";
 
-/* Socemon design language: quiet neutrals, one restrained accent, frosted materials, soft depth.
-   Palette follows the system (light / dark); components only ever reference these tokens. */
+/* Socemon: a night-at-the-event game. Dark stage, Monad purple, one color per Egg type (lib/socemon.ts TYPE_COLOR),
+   chunky pressable buttons, and poster type (Anton) for the big moments. Components only reference these tokens. */
 
 @theme inline {
-  --font-sans: var(--font-outfit), -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-  --font-display: var(--font-outfit), -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
-  --font-serif: var(--font-playfair), "Iowan Old Style", Georgia, serif;
+  --font-sans: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+  --font-display: var(--font-nunito), ui-rounded, system-ui, sans-serif;
+  --font-poster: var(--font-anton), Impact, "Arial Narrow Bold", sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --color-bg-base:     var(--bg-base);
   --color-bg-surface:  var(--bg-surface);
   --color-bg-elevated: var(--bg-elevated);
-  --color-bg-input:    var(--bg-input);
   --color-bg-sidebar:  var(--bg-sidebar);
-
-  --color-accent-primary:         var(--accent);
-  --color-accent-hover:           var(--accent-hover);
-  --color-accent-secondary:       var(--green);
-  --color-accent-secondary-hover: var(--green-hover);
 
   --color-text-primary:   var(--text-1);
   --color-text-secondary: var(--text-2);
   --color-text-tertiary:  var(--text-3);
   --color-text-accent:    var(--text-accent-c);
-  --color-text-success:   var(--text-success-c);
-  --color-text-warning:   var(--text-warning-c);
   --color-text-error:     var(--text-error-c);
 
   --color-primary:    var(--primary);
   --color-primary-fg: var(--primary-fg);
-
-  --color-sys-success: var(--green);
-  --color-sys-error:   var(--red);
-  --color-sys-warning: var(--orange);
+  --color-sys-error:  var(--red);
 }
 
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 
-  --bg-base:     #FAFAF8;
-  --bg-surface:  #FFFFFF;
-  --bg-elevated: #FFFFFF;
-  --bg-input:    rgba(14, 14, 16, 0.045);
-  --bg-sidebar:  #EFEFEC;
+  --bg-base:     #0D0A1A;
+  --bg-surface:  #161128;
+  --bg-elevated: #211A3B;
+  --bg-sidebar:  #06040D;
 
-  --accent:        #5B3FE0;
-  --accent-hover:  #4B30CC;
-  --green:         #1F9D55;
-  --green-hover:   #188A47;
-  --red:           #D93025;
-  --orange:        #E08400;
+  --primary:        #836EF9;
+  --primary-fg:     #FFFFFF;
+  --primary-shadow: #5A44D6;
+  --red:            #FF5C6C;
+  --accent:         #836EF9;
 
-  --primary:    #0E0E10;
-  --primary-fg: #FAFAF8;
+  --text-1: #F5F3FF;
+  --text-2: #B8B2D6;
+  --text-3: #7D769E;
+  --text-accent-c: #B9ACFF;
+  --text-error-c:  #FF8A95;
 
-  --text-1: #0E0E10;
-  --text-2: #55555C;
-  --text-3: #85858C;
-  --text-accent-c:  #4B30CC;
-  --text-success-c: #17803F;
-  --text-warning-c: #A05A00;
-  --text-error-c:   #C5271C;
+  --border-subtle:  rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.14);
 
-  --border-subtle:  rgba(14, 14, 16, 0.07);
-  --border-default: rgba(14, 14, 16, 0.12);
-  --border-strong:  rgba(14, 14, 16, 0.22);
-  --border-accent:  rgba(91, 63, 224, 0.38);
+  --accent-primary-dim: rgba(131, 110, 249, 0.18);
+  --fill:        rgba(255, 255, 255, 0.06);
+  --fill-strong: rgba(255, 255, 255, 0.11);
+  --material-bg: rgba(22, 17, 40, 0.86);
 
-  --accent-primary-dim:   rgba(91, 63, 224, 0.09);
-  --accent-secondary-dim: rgba(31, 157, 85, 0.11);
-  --bg-overlay:           rgba(0, 0, 0, 0.35);
-  --fill:                 rgba(14, 14, 16, 0.055);
-  --fill-strong:          rgba(14, 14, 16, 0.10);
-  --seg-thumb:            #FFFFFF;
-
-  --material-bg:     rgba(250, 250, 248, 0.78);
-  --material-sheet:  rgba(250, 250, 252, 0.80);
-  --material-edge:   rgba(255, 255, 255, 0.70);
-
-  /* Card visual keeps its own look in both themes */
-  --card-bg-from: #2A1F4E;
-  --card-bg-to:   #0E091C;
-  --card-chip:    #C9AA71;
-  --card-chip-shadow: #8B6914;
-
-  /* Depth: soft, layered, never heavy */
-  --shadow-sm:     0 1px 2px rgba(14, 14, 16, 0.04);
-  --shadow-md:     0 8px 24px rgba(14, 14, 16, 0.06), 0 1px 2px rgba(14, 14, 16, 0.04);
-  --shadow-lg:     0 16px 48px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.05);
-  --shadow-card:   0 12px 40px rgba(20, 10, 60, 0.28), 0 2px 6px rgba(0, 0, 0, 0.12);
-  --shadow-accent: 0 1px 2px rgba(14, 14, 16, 0.18);
-  --shadow-nfc:    0 4px 14px rgba(31, 157, 85, 0.22);
-  --shadow-fab:    0 6px 18px rgba(31, 157, 85, 0.30);
-
-  /* Motion */
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --ease-enter:    cubic-bezier(0, 0, 0.2, 1);
-  --ease-exit:     cubic-bezier(0.4, 0, 1, 1);
-  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-fast:   120ms;
-  --dur-normal: 220ms;
-  --dur-slow:   380ms;
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.6);
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-base:     #0E0E10;
-    --bg-surface:  #161619;
-    --bg-elevated: #1E1E22;
-    --bg-input:    rgba(255, 255, 255, 0.055);
-    --bg-sidebar:  #08080A;
-
-    --accent:        #8A75FF;
-    --accent-hover:  #9C8AFF;
-    --green:         #4ADE80;
-    --green-hover:   #6BE897;
-    --red:           #FF5C52;
-    --orange:        #FFAA33;
-
-    --primary:    #F4F4F5;
-    --primary-fg: #0E0E10;
-
-    --text-1: #F4F4F5;
-    --text-2: #B9B9BE;
-    --text-3: #7C7C84;
-    --text-accent-c:  #B3A6FF;
-    --text-success-c: #5BE48C;
-    --text-warning-c: #FFB84D;
-    --text-error-c:   #FF7A70;
-
-    --border-subtle:  rgba(255, 255, 255, 0.07);
-    --border-default: rgba(255, 255, 255, 0.13);
-    --border-strong:  rgba(255, 255, 255, 0.22);
-    --border-accent:  rgba(179, 166, 255, 0.40);
-
-    --accent-primary-dim:   rgba(138, 117, 255, 0.16);
-    --accent-secondary-dim: rgba(74, 222, 128, 0.14);
-    --bg-overlay:           rgba(0, 0, 0, 0.60);
-    --fill:                 rgba(255, 255, 255, 0.06);
-    --fill-strong:          rgba(255, 255, 255, 0.11);
-    --seg-thumb:            #2E2E33;
-
-    --material-bg:     rgba(14, 14, 16, 0.72);
-    --material-sheet:  rgba(24, 24, 27, 0.82);
-    --material-edge:   rgba(255, 255, 255, 0.10);
-
-    --shadow-sm:     0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md:     0 8px 24px rgba(0, 0, 0, 0.45);
-    --shadow-lg:     0 16px 48px rgba(0, 0, 0, 0.6);
-    --shadow-accent: 0 1px 2px rgba(0, 0, 0, 0.4);
-  }
-}
-
-/* Frosted material for floating chrome (headers, nav). Content scrolls and blurs under it. */
-.material {
-  background: var(--material-bg);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  backdrop-filter: blur(24px) saturate(180%);
-}
-
-/* Thicker material for sheets: bigger surface, deeper shadow, bright top edge. */
-.material-sheet {
-  background: var(--material-sheet);
-  -webkit-backdrop-filter: blur(40px) saturate(180%);
-  backdrop-filter: blur(40px) saturate(180%);
-  border-top: 1px solid var(--material-edge);
-  box-shadow: var(--shadow-lg);
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .material, .material-sheet {
-    background: var(--bg-elevated);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-}
-
-@media (prefers-contrast: more) {
-  .material, .material-sheet {
-    background: var(--bg-elevated);
-    border-color: var(--border-strong);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-fade-up, .animate-fade-in { animation-duration: 1ms; }
-  [style*="nfc-ping"], .nfc-ring, .card-shine { animation: none !important; }
-}
-
-@keyframes nfc-ping {
-  0%   { transform: scale(1);   opacity: 0.5; }
-  100% { transform: scale(2.6); opacity: 0; }
-}
-
-@keyframes fab-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.45), 0 4px 20px rgba(16,185,129,0.50); }
-  50%       { box-shadow: 0 0 0 10px rgba(16,185,129,0), 0 4px 20px rgba(16,185,129,0.50); }
-}
-
-@keyframes card-shine {
-  0%   { transform: translateX(-120%) rotate(25deg); }
-  100% { transform: translateX(240%) rotate(25deg); }
-}
-
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
 
 html, body {
   background-color: var(--bg-sidebar);
   overflow-x: clip;
 }
 
-* {
-  -webkit-tap-highlight-color: transparent;
-}
-
-::-webkit-scrollbar { display: none; }
-* { scrollbar-width: none; }
-
-.tabular { font-variant-numeric: tabular-nums; }
-
-.animate-fade-up {
-  animation: fade-up var(--dur-normal) var(--ease-enter) forwards;
-}
-
-.animate-fade-in {
-  animation: fade-in var(--dur-normal) var(--ease-enter) forwards;
-}
-
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-feature-settings: 'cv11', 'ss01';
 }
 
-/* Keyboard focus: one consistent, quiet ring */
+* { -webkit-tap-highlight-color: transparent; }
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
+
 @layer base {
   :focus-visible {
     outline: 2px solid var(--accent);
@@ -253,36 +77,59 @@ body {
   }
 }
 
-/* Horizontal scroller that fades into the page edges instead of clipping hard. */
-.scroll-fade-x {
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 28px), transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 28px), transparent 100%);
-  overscroll-behavior-x: contain;
-}
-
-/* Hairline surface: the default container. One border, almost no shadow. */
-.surface {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
-}
-
-/* Mono eyebrow label above a section. */
+/* Small caps label above a section. */
 .eyebrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-nunito), ui-rounded, sans-serif;
   font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-3);
 }
 
-/* Editorial accent: serif italic for one emphasised word per headline. */
-.serif-accent {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+/* Frosted material for floating chrome. */
+.material {
+  background: var(--material-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  backdrop-filter: blur(20px) saturate(160%);
+}
+
+/* Film grain over poster blocks, as on printed posters. */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-size: 200px 200px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+}
+
+/* Holographic edge for the trainer ID card. */
+.holo {
+  background:
+    linear-gradient(var(--bg-surface), var(--bg-surface)) padding-box,
+    conic-gradient(from 140deg, #836EF9, #22D3EE, #2DD4BF, #FBBF24, #FF8A3D, #F472B6, #836EF9) border-box;
+  border: 2px solid transparent;
+}
+
+/* Idle float for monsters on their stage. */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+.animate-float { animation: float 3.2s ease-in-out infinite; }
+
+/* Scanner sweep line. */
+@keyframes sweep {
+  0%   { top: 12%; }
+  50%  { top: 84%; }
+  100% { top: 12%; }
+}
+.animate-sweep { animation: sweep 2.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float, .animate-sweep { animation: none; }
 }
 
 /* Desktop: the app column sits between hairlines on the darker stage. */
@@ -290,7 +137,7 @@ body {
   .app-column { border-inline: 1px solid var(--border-subtle); }
 }
 
-/* Bottom nav sits 1rem above the edge. Android Chrome reports a large safe-area inset even in a normal tab, so the inset only applies when installed (standalone), where the home indicator needs it. */
+/* Bottom nav sits 1rem above the edge; installed (standalone) apps also clear the home indicator. */
 .bottom-nav { bottom: 1rem; }
 @media (display-mode: standalone) {
   .bottom-nav { bottom: max(1rem, env(safe-area-inset-bottom)); }

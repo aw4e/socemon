@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { Logo } from '@/components/brand/Logo'
 import { Gate } from '@/components/Gate'
-import { MonsterImage } from '@/components/socemon/MonsterImage'
+import { MonsterStage } from '@/components/socemon/MonsterStage'
 import { Reveal, useCatch } from '@/components/socemon/Reveal'
 import { Button } from '@/components/ui/Button'
 import { post, type Catch } from '@/lib/client'
@@ -17,10 +17,11 @@ export function CheckinScreen({ eventName, dropId, expired }: { eventName: strin
 
   const teaser = (
     <>
-      <Logo height={24} />
-      <MonsterImage id={dropId} size={160} silhouette={!caught} />
-      <h1 className="font-display text-[28px] leading-tight text-text-primary">{eventName}</h1>
-      <p className="font-sans text-[14px] text-text-secondary max-w-xs">
+      <Logo height={24} tone="dark" />
+      <p className="eyebrow mt-2">{eventName}</p>
+      <MonsterStage id={dropId} size={200} silhouette={!caught} ghost={caught ? drop?.name : '???'} />
+      <h1 className="font-poster text-[48px] uppercase leading-none">{caught ? drop?.name : 'Event drop'}</h1>
+      <p className="font-sans text-[15px] font-bold text-text-secondary max-w-xs">
         Check in to catch {drop?.name ?? 'the event Socemon'}. Only {drop?.maxSupply} exist, and it is the only tradeable Socemon.
       </p>
     </>
@@ -30,7 +31,7 @@ export function CheckinScreen({ eventName, dropId, expired }: { eventName: strin
     return (
       <main className="flex flex-col items-center text-center gap-4 px-6 py-10">
         {teaser}
-        <p role="alert" className="font-sans text-[14px] text-text-error">This QR expired. Scan the Event Wall again.</p>
+        <p role="alert" className="font-sans text-[15px] font-bold text-text-error">This code expired. Scan the Event Wall again.</p>
       </main>
     )
   }
@@ -46,9 +47,9 @@ export function CheckinScreen({ eventName, dropId, expired }: { eventName: strin
           <div className="flex flex-col items-center text-center gap-4 py-10">
             {teaser}
             {caught ? (
-              <Link href="/app/dex" className="font-sans text-[15px] font-medium text-text-accent">See it in your Socédex</Link>
+              <Link href="/app/dex" className="font-sans text-[14px] font-extrabold uppercase tracking-[0.06em] text-text-accent">See it in your Socédex</Link>
             ) : (
-              <Button size="lg" loading={reveal.state?.phase === 'pending'} onClick={catchDrop}>Catch {drop?.name}</Button>
+              <Button size="lg" fullWidth loading={reveal.state?.phase === 'pending'} onClick={catchDrop}>Catch it</Button>
             )}
           </div>
         )}

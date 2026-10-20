@@ -53,7 +53,7 @@ export function Reveal({ state, onClose }: { state: RevealState | null; onClose:
           {state.phase === 'done' && <Done {...state} onClose={onClose} />}
           {state.phase === 'error' && (
             <>
-              <p className="font-display text-[22px] text-white">Not this time</p>
+              <p className="font-poster text-[40px] uppercase text-white leading-none">Not this time</p>
               <p className="font-sans text-[14px] text-white/70 max-w-xs">{state.message}</p>
               <Button variant="secondary" onClick={onClose} className="!text-white !border-white/30">Close</Button>
             </>
@@ -100,7 +100,7 @@ function Done({ monsterId, tx, ms, extra, onClose }: Extract<RevealState, { phas
       </motion.div>
       <div>
         <p className="font-sans text-[12px] uppercase tracking-[0.12em]" style={{ color }}>{label}</p>
-        <p className="font-display text-[32px] text-white leading-tight mt-1">{species?.name ?? 'Socemon'}</p>
+        <p className="font-poster text-[52px] uppercase text-white leading-none mt-2">{species?.name ?? 'Socemon'}</p>
         {extra && <p className="font-sans text-[14px] text-white/80 mt-2 max-w-xs mx-auto">{extra}</p>}
       </div>
       <p className="font-mono text-[12px] text-white/60">

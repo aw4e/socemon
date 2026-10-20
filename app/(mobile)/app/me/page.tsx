@@ -1,18 +1,19 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Check, Copy, ExternalLink, LogOut } from 'lucide-react'
+import { Check, ChevronRight, Copy, ExternalLink, LogOut } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
+import { TypeChip } from '@/components/socemon/TypeChip'
 import { Button } from '@/components/ui/Button'
 import { socemonAddress } from '@/lib/abi'
 import { useSession, useTrainer, useUser } from '@/lib/client'
-import { ROLES, speciesById } from '@/lib/socemon'
+import { SPECIES, colorOf, speciesById, typesCaught } from '@/lib/socemon'
 import { shortAddress } from '@/lib/utils'
 
 const EXPLORER = 'https://testnet.monadscan.com/address/'
 
-/* Your trainer card, wallet and links, and sign out. */
+/* Your trainer ID card (holographic edge), your links, and sign out. */
 export default function MePage() {
   const user = useUser()
   const trainer = useTrainer(user)
@@ -20,7 +21,7 @@ export default function MePage() {
   const [copied, setCopied] = useState(false)
   const profile = trainer.profile
   const partner = Number(profile?.partner ?? 0n)
-  const role = ROLES[profile?.role ?? 0]
+  const color = colorOf(partner)
 
   async function copy() {
     await navigator.clipboard.writeText(user)
@@ -34,49 +35,71 @@ export default function MePage() {
     { href: `${EXPLORER}${user}`, label: 'My wallet on Monadscan', external: true },
     { href: `${EXPLORER}${socemonAddress()}`, label: 'Socemon contract', external: true },
   ]
+  const stats = [
+    { value: trainer.connections?.length ?? 0, label: 'Friends' },
+    { value: `${typesCaught(trainer.owned)}/5`, label: 'Types' },
+    { value: `${trainer.owned.size}/${SPECIES.length + 1}`, label: 'Caught' },
+  ]
 
   return (
     <div>
       <PageHeader title="Me" />
 
-      <section className="rounded-3xl bg-[var(--fill)] p-5 flex items-center gap-4">
-        <MonsterImage key={partner} id={partner} size={88} />
-        <div className="min-w-0">
-          <p className="font-display text-[22px] text-text-primary truncate">{profile?.name}</p>
-          <p className="font-sans text-[13px] text-text-secondary">{role?.label} · {role?.type} type</p>
-          <p className="font-sans text-[12px] text-text-tertiary">Partner: {speciesById(partner)?.name}</p>
+      <section className="holo relative overflow-hidden rounded-[30px] p-5">
+        <div aria-hidden className="absolute -right-10 -top-10 w-48 h-48 rounded-full blur-3xl opacity-40" style={{ background: color }} />
+        <div className="relative flex items-center justify-between">
+          <p className="eyebrow">Trainer ID</p>
+          <p className="font-mono text-[11px] text-text-tertiary">{shortAddress(user)}</p>
         </div>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="eyebrow mb-2">Wallet</h2>
-        <button onClick={copy} className="w-full flex items-center justify-between rounded-[14px] bg-[var(--fill)] px-4 py-3">
-          <span className="font-mono text-[14px] text-text-primary">{shortAddress(user)}</span>
-          {copied ? <Check className="w-4 h-4 text-text-accent" /> : <Copy className="w-4 h-4 text-text-tertiary" />}
-        </button>
-        <p className="font-sans text-[12px] text-text-tertiary mt-2">Your Socemon live in this wallet. Blitzmon can be traded; everything else is soulbound.</p>
-      </section>
-
-      <section className="mt-6">
-        <h2 className="eyebrow mb-2">Links</h2>
-        <ul className="space-y-2">
-          {links.map((l) => (
-            <li key={l.label}>
-              <Link
-                href={l.href}
-                target={l.external ? '_blank' : undefined}
-                rel={l.external ? 'noreferrer' : undefined}
-                className="flex items-center justify-between rounded-[14px] bg-[var(--fill)] px-4 py-3 font-sans text-[14px] text-text-primary"
-              >
-                {l.label}
-                {l.external && <ExternalLink className="w-4 h-4 text-text-tertiary" />}
-              </Link>
-            </li>
+        <div className="relative flex items-center gap-4 mt-3">
+          <div className="w-24 h-24 rounded-[24px] flex items-center justify-center shrink-0" style={{ background: `${color}2e` }}>
+            <MonsterImage key={partner} id={partner} size={88} />
+          </div>
+          <div className="min-w-0">
+            <p className="font-sans text-[26px] font-black leading-tight truncate">{profile?.name}</p>
+            {profile && <TypeChip role={profile.role} className="mt-1.5" />}
+            <p className="font-sans text-[12px] font-bold text-text-tertiary mt-1.5">Partner · {speciesById(partner)?.name}</p>
+          </div>
+        </div>
+        <dl className="relative grid grid-cols-3 mt-5 pt-4 border-t border-dashed border-(--border-default)">
+          {stats.map((s) => (
+            <div key={s.label} className="flex flex-col-reverse items-center">
+              <dt className="eyebrow">{s.label}</dt>
+              <dd className="font-poster text-[26px] leading-none">{s.value}</dd>
+            </div>
           ))}
-        </ul>
+        </dl>
       </section>
 
-      <Button variant="secondary" fullWidth className="mt-8" onClick={signOut}>
+      <button onClick={copy} className="mt-5 w-full flex items-center justify-between py-3 border-b border-(--border-subtle)">
+        <span className="text-left">
+          <span className="eyebrow block">Wallet</span>
+          <span className="font-mono text-[15px] text-text-primary">{shortAddress(user)}</span>
+        </span>
+        {copied ? <Check className="w-5 h-5 text-text-accent" /> : <Copy className="w-5 h-5 text-text-tertiary" />}
+      </button>
+
+      <ul>
+        {links.map((l) => (
+          <li key={l.label}>
+            <Link
+              href={l.href}
+              target={l.external ? '_blank' : undefined}
+              rel={l.external ? 'noreferrer' : undefined}
+              className="flex items-center justify-between py-4 border-b border-(--border-subtle) font-sans text-[16px] font-extrabold text-text-primary"
+            >
+              {l.label}
+              {l.external ? <ExternalLink className="w-4 h-4 text-text-tertiary" /> : <ChevronRight className="w-5 h-5 text-text-tertiary" />}
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <p className="font-sans text-[13px] font-bold text-text-tertiary mt-5">
+        Your Socemon live in this wallet. Event drops can be traded; everything else is soulbound.
+      </p>
+
+      <Button variant="secondary" fullWidth className="mt-6" onClick={signOut}>
         <LogOut className="w-4 h-4" /> Sign out
       </Button>
     </div>

@@ -54,3 +54,19 @@ export const imageFor = (id: number) => `/socemon/${id}.png`
 /** How many of the five role types a trainer has caught at least one species of (Nexmon needs all five). */
 export const typesCaught = (owned: Set<number>) =>
   ROLES.filter((r) => r.role !== POOL.wild && speciesInPool(r.role).some((s) => owned.has(s.id))).length
+
+/** One color per Egg type (pool): eggs, badges and monster stages wear it. Soci wears Monad purple. */
+export const TYPE_COLOR: Record<number, string> = {
+  [POOL.wild]: '#84CC16',
+  [POOL.byte]: '#22D3EE',
+  [POOL.blaze]: '#FF8A3D',
+  [POOL.prism]: '#F472B6',
+  [POOL.gold]: '#FBBF24',
+  [POOL.echo]: '#2DD4BF',
+  [POOL.event]: '#836EF9',
+  [POOL.bonus]: '#FFD166',
+}
+
+export const MONAD_PURPLE = '#836EF9'
+
+export const colorOf = (id: number) => (id === STARTER_ID ? MONAD_PURPLE : TYPE_COLOR[speciesById(id)?.pool ?? POOL.wild])

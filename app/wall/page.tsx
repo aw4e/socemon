@@ -9,7 +9,7 @@ export default async function WallPage({ searchParams }: { searchParams: Promise
   if (!process.env.WALL_KEY || key !== process.env.WALL_KEY) {
     return (
       <main className="min-h-svh flex flex-col items-center justify-center gap-3 px-8 text-center">
-        <h1 className="font-display text-[26px] text-text-primary">Event Wall</h1>
+        <h1 className="font-poster text-[48px] uppercase leading-none text-text-primary">Event Wall</h1>
         <p className="font-sans text-[14px] text-text-secondary max-w-xs">Open this page with the wall link from the host.</p>
       </main>
     )

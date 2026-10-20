@@ -1,7 +1,7 @@
 export function PageHeader({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
-    <header className="flex items-center justify-between h-16">
-      <h1 className="font-display text-[22px] font-medium tracking-[-0.02em] text-text-primary">{title}</h1>
+    <header className="flex items-end justify-between pt-6 pb-5">
+      <h1 className="font-poster text-[40px] uppercase leading-none tracking-[-0.01em] text-text-primary">{title}</h1>
       {children}
     </header>
   )

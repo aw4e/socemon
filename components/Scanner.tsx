@@ -45,14 +45,26 @@ export function Scanner({ onScan }: { onScan: (text: string) => boolean }) {
   }, [])
 
   return (
-    <div className="relative w-full max-w-[320px] aspect-square rounded-3xl overflow-hidden bg-black">
+    <div className="relative w-full aspect-square rounded-[32px] overflow-hidden bg-[#06040D]">
       <video ref={video} className="w-full h-full object-cover" muted playsInline />
-      <div aria-hidden className="absolute inset-8 rounded-2xl border-2 border-white/80" />
+      <div aria-hidden className="absolute inset-[14%]">
+        {CORNERS.map((c) => (
+          <span key={c} className={`absolute w-11 h-11 border-white ${c}`} />
+        ))}
+        {!error && <span className="animate-sweep absolute inset-x-2 h-[3px] rounded-full bg-primary shadow-[0_0_18px_4px_rgba(131,110,249,0.8)]" />}
+      </div>
       {error && (
-        <p role="alert" className="absolute inset-0 flex items-center justify-center p-6 text-center font-sans text-[14px] text-white/80 bg-black/80">
+        <p role="alert" className="absolute inset-0 flex items-center justify-center p-8 text-center font-sans text-[15px] font-bold text-white/85 bg-[#06040D]/85">
           {error}
         </p>
       )}
     </div>
   )
 }
+
+const CORNERS = [
+  'top-0 left-0 border-t-[5px] border-l-[5px] rounded-tl-[22px]',
+  'top-0 right-0 border-t-[5px] border-r-[5px] rounded-tr-[22px]',
+  'bottom-0 left-0 border-b-[5px] border-l-[5px] rounded-bl-[22px]',
+  'bottom-0 right-0 border-b-[5px] border-r-[5px] rounded-br-[22px]',
+]

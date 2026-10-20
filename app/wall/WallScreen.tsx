@@ -57,22 +57,22 @@ export function WallScreen({ wallKey, eventName, dropId }: { wallKey: string; ev
       <div className="min-h-full grid grid-cols-1 lg:grid-cols-[minmax(320px,32%)_1fr] gap-10 p-10">
         <aside className="flex flex-col items-center gap-6 text-center lg:sticky lg:top-10 self-start">
           <Logo height={32} tone="dark" />
-          <h1 className="font-display text-[34px] leading-tight">{eventName}</h1>
+          <h1 className="font-poster text-[56px] uppercase leading-none">{eventName}</h1>
           {qr ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={qr} alt="Check-in QR code" className="w-full max-w-[360px] rounded-3xl bg-white p-4" />
           ) : (
             <div className="w-full max-w-[360px] aspect-square rounded-3xl bg-white/10" />
           )}
-          <p className="font-sans text-[18px] text-white/80">Scan to check in and catch {drop?.name ?? 'the event Socemon'}</p>
-          <div className="flex gap-10 font-mono">
+          <p className="font-sans text-[20px] font-bold text-white/80">Scan with the Socemon app to catch {drop?.name ?? 'the event drop'}</p>
+          <div className="flex gap-10">
             <div>
-              <p className="text-[44px] leading-none">{dropped ?? '–'}</p>
+              <p className="font-poster text-[64px] leading-none">{dropped ?? '–'}</p>
               <p className="text-[12px] uppercase tracking-[0.12em] text-white/50 mt-2">caught</p>
             </div>
             {drop && dropped != null && (
               <div>
-                <p className="text-[44px] leading-none">{Math.max(0, drop.maxSupply - dropped)}</p>
+                <p className="font-poster text-[64px] leading-none text-[#836EF9]">{Math.max(0, drop.maxSupply - dropped)}</p>
                 <p className="text-[12px] uppercase tracking-[0.12em] text-white/50 mt-2">{drop.name} left</p>
               </div>
             )}
@@ -81,7 +81,7 @@ export function WallScreen({ wallKey, eventName, dropId }: { wallKey: string; ev
 
         <main aria-live="polite">
           {feed.length === 0 ? (
-            <p className="font-sans text-[20px] text-white/50 text-center mt-24">Waiting for the first catch…</p>
+            <p className="font-poster text-[48px] uppercase text-white/30 text-center mt-24">Waiting for the first catch</p>
           ) : (
             <ul className="space-y-3">
               <AnimatePresence initial={false}>
@@ -101,7 +101,7 @@ export function WallScreen({ wallKey, eventName, dropId }: { wallKey: string; ev
                         <Handshake className="w-8 h-8 text-white/70" />
                       </div>
                     )}
-                    <p className="font-sans text-[20px]">{item.text}</p>
+                    <p className="font-sans text-[22px] font-extrabold">{item.text}</p>
                   </motion.li>
                 ))}
               </AnimatePresence>

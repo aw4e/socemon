@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next'
-import { Outfit, Playfair_Display, Geist_Mono } from 'next/font/google'
+import { Anton, Geist_Mono, Nunito } from 'next/font/google'
 import './globals.css'
 import { Web3Provider } from '@/components/providers/Web3Provider'
 import { MotionProvider } from '@/components/providers/MotionProvider'
 
-const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 'swap' })
-const playfair = Playfair_Display({ subsets: ['latin'], style: 'italic', weight: ['500'], variable: '--font-playfair', display: 'swap' })
+const nunito = Nunito({ subsets: ['latin'], variable: '--font-nunito', display: 'swap' })
+const anton = Anton({ subsets: ['latin'], weight: '400', variable: '--font-anton', display: 'swap' })
 const geistMono = Geist_Mono({ subsets: ['latin'], weight: ['400', '500'], variable: '--font-geist-mono', display: 'swap' })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
@@ -19,22 +19,19 @@ export const metadata: Metadata = {
   applicationName: 'Socemon',
   openGraph: { type: 'website', siteName: 'Socemon', title: 'Socemon', description: tagline },
   twitter: { card: 'summary_large_image', title: 'Socemon', description: tagline },
-  appleWebApp: { capable: true, title: 'Socemon', statusBarStyle: 'default' },
+  appleWebApp: { capable: true, title: 'Socemon', statusBarStyle: 'black-translucent' },
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FAFAF8' },
-    { media: '(prefers-color-scheme: dark)', color: '#0E0E10' },
-  ],
+  themeColor: '#0D0A1A',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${playfair.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${nunito.variable} ${anton.variable} ${geistMono.variable}`}>
       <body className="font-sans text-text-primary antialiased">
         <Web3Provider>
           <MotionProvider>{children}</MotionProvider>

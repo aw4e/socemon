@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
-import { POOL, ROLES, SPECIES, speciesById, speciesInPool, typeName, typesCaught } from '../lib/socemon'
+import { POOL, ROLES, SPECIES, TYPE_COLOR, colorOf, speciesById, speciesInPool, typeName, typesCaught } from '../lib/socemon'
 import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
 import { SOCEMON_ABI } from '../lib/abi'
 import { gasLimit, hatchResult } from '../lib/chain'
@@ -30,6 +30,13 @@ test.describe('socemon catalog', () => {
     expect(ROLES.map((r) => r.label)).toEqual(['Other', 'Developer', 'Founder', 'Designer', 'Investor', 'Community'])
     expect(typeName(POOL.event)).toBe('Event')
     expect(typeName(POOL.bonus)).toBe('Legendary')
+  })
+
+  test('every pool has a color and Soci wears Monad purple', () => {
+    for (let pool = 0; pool <= 7; pool++) expect(TYPE_COLOR[pool], `pool ${pool}`).toMatch(/^#[0-9A-F]{6}$/i)
+    expect(colorOf(0)).toBe('#836EF9')
+    expect(colorOf(4)).toBe(TYPE_COLOR[POOL.blaze])
+    expect(colorOf(20)).toBe(TYPE_COLOR[POOL.event])
   })
 
   test('types caught counts the five role types only', () => {

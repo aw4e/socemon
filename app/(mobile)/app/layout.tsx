@@ -3,16 +3,18 @@ import type { Address } from 'viem'
 import { BottomNav } from '@/components/BottomNav'
 import { Logo } from '@/components/brand/Logo'
 import { Gate } from '@/components/Gate'
-import { MonsterImage } from '@/components/socemon/MonsterImage'
+import { MonsterStage } from '@/components/socemon/MonsterStage'
 import { UserContext, useTrainer } from '@/lib/client'
 import { STARTER_ID } from '@/lib/socemon'
 
 const hero = (
   <>
-    <Logo height={28} />
-    <MonsterImage id={STARTER_ID} size={160} />
-    <p className="font-display text-[30px] leading-tight text-text-primary">Catch your network.</p>
-    <p className="font-sans text-[14px] text-text-secondary max-w-xs">
+    <Logo height={26} tone="dark" />
+    <MonsterStage id={STARTER_ID} size={190} />
+    <h1 className="font-poster uppercase leading-[0.92] text-[52px] -mt-2">
+      Catch your<br /><span className="text-primary">network</span>
+    </h1>
+    <p className="font-sans text-[15px] font-semibold text-text-secondary max-w-xs">
       Meet people, hatch their type, fill your Socédex. Every Socemon is an NFT on Monad.
     </p>
   </>

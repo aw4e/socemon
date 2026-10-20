@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Check, Copy, Share2 } from 'lucide-react'
 import QRCode from 'qrcode'
 import { PageHeader } from '@/components/PageHeader'
+import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { Scanner } from '@/components/Scanner'
 import { Button } from '@/components/ui/Button'
 import { useTrainer, useUser } from '@/lib/client'
@@ -22,7 +23,7 @@ export default function QrPage() {
   return (
     <div>
       <PageHeader title={mode === 'scan' ? 'Scan' : 'My code'} />
-      <div role="tablist" aria-label="Scan or show your code" className="grid grid-cols-2 p-1 rounded-full bg-[var(--fill)] mb-6">
+      <div role="tablist" aria-label="Scan or show your code" className="grid grid-cols-2 gap-1 p-1.5 rounded-[20px] bg-bg-surface border border-(--border-default) mb-6">
         {MODES.map((m) => (
           <button
             key={m.id}
@@ -30,8 +31,8 @@ export default function QrPage() {
             aria-selected={mode === m.id}
             onClick={() => setMode(m.id)}
             className={cn(
-              'h-9 rounded-full font-sans text-[14px] transition-colors',
-              mode === m.id ? 'bg-[var(--bg-surface)] text-text-primary shadow-sm' : 'text-text-tertiary',
+              'h-11 rounded-[14px] font-sans text-[13px] font-extrabold uppercase tracking-[0.06em] transition-all',
+              mode === m.id ? 'bg-primary text-white shadow-[0_3px_0_var(--primary-shadow)]' : 'text-text-tertiary',
             )}
           >
             {m.label}
@@ -70,7 +71,7 @@ function ScanMode() {
   return (
     <section className="flex flex-col items-center text-center">
       <Scanner onScan={onScan} />
-      <p role="status" className="font-sans text-[13px] text-text-secondary max-w-xs mt-4">
+      <p role="status" className="font-sans text-[15px] font-bold text-text-secondary max-w-xs mt-5">
         {hint || 'Point at a friend’s Socemon code to connect, or at the Event Wall to check in.'}
       </p>
     </section>
@@ -84,6 +85,7 @@ function CodeMode() {
   const [link, setLink] = useState('')
   const [canShare, setCanShare] = useState(false)
   const [copied, setCopied] = useState(false)
+  const partner = Number(trainer.profile?.partner ?? 0n)
 
   useEffect(() => {
     const url = `${window.location.origin}/u/${user}`
@@ -99,18 +101,26 @@ function CodeMode() {
   }
 
   return (
-    <section className="flex flex-col items-center text-center">
-      {qr ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={qr} alt="QR code to your Socemon profile" className="w-72 rounded-3xl bg-white p-4" />
-      ) : (
-        <div className="w-72 aspect-square rounded-3xl bg-[var(--fill)]" />
-      )}
-      <p className="font-display text-[22px] text-text-primary mt-4">{trainer.profile?.name}</p>
-      <p className="font-sans text-[13px] text-text-secondary max-w-xs mt-1">
-        A friend scans this in their Socemon app and taps Connect. Approve them on Home and you both get an Egg.
+    <section className="flex flex-col items-center text-center pt-14">
+      <div className="relative w-full max-w-[300px] rounded-[30px] bg-white p-5 pt-14 shadow-[0_6px_0_rgba(255,255,255,0.12)]">
+        <div className="absolute -top-16 left-1/2 -translate-x-1/2 animate-float">
+          <MonsterImage key={partner} id={partner} size={112} />
+        </div>
+        {qr ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={qr} alt="QR code to your Socemon profile" className="w-full" />
+        ) : (
+          <div className="w-full aspect-square rounded-2xl bg-black/5" />
+        )}
+        <p className="font-poster text-[30px] uppercase leading-none text-[#0D0A1A] mt-3 truncate">{trainer.profile?.name}</p>
+        <div className="mt-2 border-t-2 border-dashed border-black/15 pt-2 font-sans text-[11px] font-extrabold uppercase tracking-[0.1em] text-black/45">
+          Scan to connect · Socemon
+        </div>
+      </div>
+      <p className="font-sans text-[15px] font-bold text-text-secondary max-w-xs mt-6">
+        A friend scans this in their Socemon app. Approve them on Home and you both get an Egg.
       </p>
-      <div className="flex gap-2 mt-4">
+      <div className="flex gap-3 mt-5">
         <Button variant="secondary" size="sm" onClick={copy}>
           {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {copied ? 'Copied' : 'Copy link'}
         </Button>
@@ -120,7 +130,7 @@ function CodeMode() {
           </Button>
         )}
       </div>
-      <Link href="/app/friends" className="font-sans text-[14px] font-medium text-text-accent mt-8">
+      <Link href="/app/friends" className="font-sans text-[14px] font-extrabold uppercase tracking-[0.06em] text-text-accent mt-8">
         Your friends · {trainer.connections?.length ?? 0}
       </Link>
     </section>

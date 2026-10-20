@@ -1,153 +1,134 @@
 import Link from 'next/link'
-import { ArrowRight, Egg, QrCode, Ticket } from 'lucide-react'
-import { Logo } from '@/components/brand/Logo'
+import { ArrowRight } from 'lucide-react'
+import { HeroCarousel } from '@/components/landing/HeroCarousel'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
-import { POOL, ROLES, TIER_COLOR, speciesById } from '@/lib/socemon'
+import { MONAD_PURPLE, POOL, ROLES, TIER_COLOR, TYPE_COLOR, speciesById } from '@/lib/socemon'
 
 const STEPS = [
-  { Icon: QrCode, title: 'Meet', body: 'Show your QR. A friend scans it and taps Connect, you approve, and you both get an Egg of each other’s type.' },
-  { Icon: Egg, title: 'Hatch', body: 'Eggs hatch into one of 18 species, rarer ones weighted by supply. Catch all five types and Nexmon joins you.' },
-  { Icon: Ticket, title: 'Show up', body: 'Scan the Event Wall to catch the event drop. Its QR changes every 30 seconds, so only people in the room get one.' },
+  { color: MONAD_PURPLE, title: 'Meet', body: 'Scan someone’s code at the event. They approve, and you both get an Egg of each other’s type.' },
+  { color: TYPE_COLOR[POOL.byte], title: 'Hatch', body: 'Eggs hatch into one of 18 species, rarer ones weighted by supply. Catch all five types and Nexmon joins you.' },
+  { color: TYPE_COLOR[POOL.blaze], title: 'Show up', body: 'Scan the Event Wall for the event drop. The code changes every 30 seconds, so only people in the room catch one.' },
 ]
 
 const ORGANIZERS = [
-  'A rotating QR on the projector, so every check-in happened in the room',
-  'Every check-in is an onchain event on Monad: attendance you can verify',
-  'A limited, tradeable drop gives people a reason to come',
-  'Attendees never need gas or tokens; the relayer pays',
+  'A rotating QR on the projector proves every check-in happened in the room.',
+  'Every check-in is an onchain event on Monad. Attendance you can verify.',
+  'A limited, tradeable drop gives people a reason to come.',
+  'Attendees never need gas or tokens. The relayer pays.',
 ]
 
-/* ponytail: sample art only; the rest of the roster fills in as portraits land */
-const SAMPLES = [0, 1, 2]
+/* ponytail: sample art only; the lineup grows as portraits land */
+const LINEUP = [0, 1, 2]
 
-const appButton = 'inline-flex items-center gap-2 rounded-full bg-primary text-primary-fg font-sans font-medium'
-
-/* Public landing: what Socemon is, how it plays, and why event organizers want it. No wallet needed here. */
+/* Public landing: poster hero, how it plays, types, the first Socemon, and the pitch for event organizers. */
 export default function LandingPage() {
   const contract = process.env.NEXT_PUBLIC_SOCEMON_ADDRESS
   return (
-    <div className="min-h-svh bg-bg-base text-text-primary">
-      <header className="mx-auto max-w-5xl flex items-center justify-between px-5 h-16">
-        <Logo height={24} />
-        <Link href="/app" className={`${appButton} h-9 px-4 text-[14px]`}>Launch app</Link>
-      </header>
+    <div className="bg-bg-base text-text-primary">
+      <HeroCarousel />
 
-      <main className="mx-auto max-w-5xl px-5">
-        <section className="grid md:grid-cols-[1.1fr_1fr] items-center gap-8 pt-10 pb-16">
-          <div className="text-center md:text-left">
-            <p className="eyebrow">Built for Monad Blitz</p>
-            <h1 className="font-display text-[44px] md:text-[60px] leading-[1.05] tracking-[-0.03em] mt-3">
-              Catch your <span className="serif-accent">network</span>.
-            </h1>
-            <p className="font-sans text-[16px] text-text-secondary mt-4 max-w-md mx-auto md:mx-0">
-              Socemon turns the people you meet into monsters you collect. Every connection hatches an Egg, every event has
-              its own drop, and all of it lives onchain on Monad.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-7 justify-center md:justify-start">
-              <Link href="/app" className={`${appButton} h-12 px-6 text-[15px]`}>
-                Launch app <ArrowRight className="w-4 h-4" />
-              </Link>
-              <a href="#how" className="inline-flex items-center h-12 px-6 rounded-full border border-(--border-default) font-sans text-[15px]">
-                How it plays
-              </a>
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <div className="rounded-full p-6" style={{ background: `radial-gradient(circle, ${TIER_COLOR.event}40 0%, transparent 70%)` }}>
-              <MonsterImage id={0} size={300} />
-            </div>
-          </div>
-        </section>
-
-        <section id="how" className="py-12 scroll-mt-16">
-          <h2 className="font-display text-[30px] tracking-[-0.02em] text-center">How it plays</h2>
-          <div className="grid md:grid-cols-3 gap-4 mt-8">
-            {STEPS.map(({ Icon, title, body }, i) => (
-              <div key={title} className="surface rounded-3xl p-6">
-                <div className="flex items-center gap-3">
-                  <span className="w-10 h-10 rounded-2xl bg-[var(--accent-primary-dim)] text-text-accent flex items-center justify-center">
-                    <Icon className="w-5 h-5" />
-                  </span>
-                  <span className="font-mono text-[12px] text-text-tertiary">0{i + 1}</span>
-                </div>
-                <h3 className="font-display text-[22px] mt-4">{title}</h3>
-                <p className="font-sans text-[14px] text-text-secondary mt-2">{body}</p>
+      <section className="mx-auto max-w-6xl px-5 py-24">
+        <p className="eyebrow">How it plays</p>
+        <ol className="mt-6">
+          {STEPS.map((s, i) => (
+            <li key={s.title} className="grid grid-cols-[auto_1fr] gap-x-6 sm:gap-x-12 items-baseline border-t border-(--border-subtle) py-8 sm:py-10">
+              <span className="font-poster leading-none" style={{ color: s.color, fontSize: 'clamp(64px, 12vw, 150px)' }}>
+                0{i + 1}
+              </span>
+              <div>
+                <h2 className="font-sans font-black text-[30px] sm:text-[44px] leading-tight tracking-[-0.02em]">{s.title}</h2>
+                <p className="font-sans text-[16px] sm:text-[18px] font-semibold text-text-secondary mt-2 max-w-xl">{s.body}</p>
               </div>
-            ))}
-          </div>
-        </section>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-        <section className="py-12">
-          <h2 className="font-display text-[30px] tracking-[-0.02em] text-center">Your role is your type</h2>
-          <p className="font-sans text-[15px] text-text-secondary text-center mt-3 max-w-xl mx-auto">
-            Pick what you do when you join. Everyone who connects with you gets an Egg of your type.
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-8">
-            {ROLES.map((r) => (
-              <div key={r.role} className="surface rounded-2xl px-4 py-4 text-center">
-                <p className="font-display text-[18px]">{r.type}</p>
-                <p className="font-sans text-[12px] text-text-tertiary">{r.role === POOL.wild ? 'Everyone else' : r.label}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+      <section className="mx-auto max-w-6xl px-5 pb-24">
+        <h2 className="font-poster uppercase leading-[0.95]" style={{ fontSize: 'clamp(48px, 8vw, 104px)' }}>
+          Your role is <span style={{ color: MONAD_PURPLE }}>your type</span>
+        </h2>
+        <p className="font-sans text-[17px] font-semibold text-text-secondary mt-4 max-w-xl">
+          Pick what you do when you join. Everyone who connects with you gets an Egg of your type.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-10">
+          {ROLES.map((r) => (
+            <div key={r.role} className="rounded-[28px] px-5 pt-5 pb-4 text-[#0D0A1A] flex flex-col justify-between min-h-[150px]" style={{ background: TYPE_COLOR[r.role] }}>
+              <p className="font-poster uppercase leading-none" style={{ fontSize: 'clamp(40px, 6vw, 64px)' }}>{r.type}</p>
+              <p className="font-sans text-[14px] font-extrabold uppercase tracking-[0.06em] opacity-75">
+                {r.role === POOL.wild ? 'Everyone else' : r.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        <section className="py-12">
-          <h2 className="font-display text-[30px] tracking-[-0.02em] text-center">Meet the first Socemon</h2>
-          <div className="grid grid-cols-3 gap-4 mt-8 max-w-2xl mx-auto">
-            {SAMPLES.map((id) => {
+      <section className="relative overflow-hidden py-24">
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#836EF91f] to-transparent" />
+        <div className="relative mx-auto max-w-6xl px-5">
+          <h2 className="font-poster uppercase leading-[0.95] text-center" style={{ fontSize: 'clamp(48px, 8vw, 104px)' }}>
+            Meet the first Socemon
+          </h2>
+          <div className="grid grid-cols-3 gap-2 sm:gap-8 mt-14 items-end">
+            {LINEUP.map((id) => {
               const s = speciesById(id)
               return (
                 <div key={id} className="flex flex-col items-center text-center">
-                  <MonsterImage id={id} size={160} />
-                  <p className="font-display text-[18px] mt-2">{s?.name}</p>
-                  <p className="font-sans text-[12px]" style={{ color: TIER_COLOR[s?.tier ?? 'common'] }}>
+                  <div className="animate-float" style={{ animationDelay: `${id * 0.4}s` }}>
+                    <MonsterImage id={id} size={260} className="w-full h-auto max-w-[260px]" />
+                  </div>
+                  <p className="font-mono text-[12px] text-text-tertiary mt-4">#{String(id).padStart(3, '0')}</p>
+                  <p className="font-sans font-black text-[20px] sm:text-[26px]">{s?.name}</p>
+                  <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.08em]" style={{ color: id === 0 ? MONAD_PURPLE : TIER_COLOR[s?.tier ?? 'common'] }}>
                     {id === 0 ? 'Starter' : s?.tier}
                   </p>
                 </div>
               )
             })}
           </div>
-        </section>
+          <p className="font-sans text-[15px] font-semibold text-text-tertiary text-center mt-12">+ 18 more to discover, including the legendary Nexmon.</p>
+        </div>
+      </section>
 
-        <section className="py-12">
-          <div className="rounded-[32px] p-8 md:p-12 text-white" style={{ background: 'linear-gradient(160deg, #0B0C14 0%, #1B1245 100%)' }}>
-            <p className="font-mono text-[11px] uppercase tracking-[0.08em] text-white/60">For event organizers</p>
-            <h2 className="font-display text-[30px] md:text-[38px] leading-tight tracking-[-0.02em] mt-3 max-w-xl">
-              Give people a reason to show up, and proof that they did.
-            </h2>
-            <ul className="mt-6 space-y-3 max-w-xl">
-              {ORGANIZERS.map((line) => (
-                <li key={line} className="flex gap-3 font-sans text-[15px] text-white/80">
-                  <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[#836EF9] shrink-0" />
-                  {line}
-                </li>
-              ))}
-            </ul>
-            <a
-              href="https://github.com/riorblade/socemon"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 h-11 px-5 mt-8 rounded-full bg-white text-[#0B0C14] font-sans font-medium text-[14px]"
-            >
-              Run it at your event <ArrowRight className="w-4 h-4" />
-            </a>
-          </div>
-        </section>
-      </main>
-
-      <footer className="mx-auto max-w-5xl px-5 py-10 flex flex-wrap gap-x-6 gap-y-2 justify-between font-sans text-[13px] text-text-tertiary border-t border-(--border-subtle)">
-        <span>Socemon · Social on Monad · Built for Monad Blitz</span>
-        <span className="flex gap-4">
-          {contract && (
-            <a href={`https://testnet.monadscan.com/address/${contract}`} target="_blank" rel="noreferrer" className="hover:text-text-primary">
-              Contract
-            </a>
-          )}
-          <a href="https://github.com/riorblade/socemon" target="_blank" rel="noreferrer" className="hover:text-text-primary">
-            GitHub
+      <section className="grain relative overflow-hidden text-white" style={{ background: MONAD_PURPLE }}>
+        <div className="relative z-10 mx-auto max-w-6xl px-5 py-24">
+          <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.14em] text-white/70">For event organizers</p>
+          <h2 className="font-poster uppercase leading-[0.9] mt-4" style={{ fontSize: 'clamp(64px, 13vw, 200px)' }}>
+            Make them<br />show up.
+          </h2>
+          <ol className="mt-12 grid sm:grid-cols-2 gap-x-12">
+            {ORGANIZERS.map((line, i) => (
+              <li key={line} className="flex gap-4 border-t border-white/25 py-5">
+                <span className="font-poster text-[28px] leading-none text-white/60">{i + 1}</span>
+                <p className="font-sans text-[18px] font-bold leading-snug">{line}</p>
+              </li>
+            ))}
+          </ol>
+          <a
+            href="https://github.com/riorblade/socemon"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 h-14 px-7 mt-12 rounded-2xl bg-white text-[#0D0A1A] font-sans text-[15px] font-extrabold uppercase tracking-[0.05em] shadow-[0_4px_0_rgba(0,0,0,0.25)] active:translate-y-1 active:shadow-none"
+          >
+            Run it at your event <ArrowRight className="w-5 h-5" />
           </a>
-        </span>
+        </div>
+      </section>
+
+      <footer className="relative overflow-hidden">
+        <p aria-hidden className="font-poster uppercase leading-none text-center text-white/[0.05] select-none whitespace-nowrap -mb-4" style={{ fontSize: 'clamp(90px, 24vw, 360px)' }}>
+          Socemon
+        </p>
+        <div className="mx-auto max-w-6xl px-5 pb-10 flex flex-wrap gap-x-6 gap-y-3 justify-between items-center font-sans text-[13px] font-bold text-text-tertiary">
+          <span>Social on Monad · Built for Monad Blitz</span>
+          <span className="flex gap-5">
+            <Link href="/app" className="hover:text-text-primary">Launch app</Link>
+            {contract && (
+              <a href={`https://testnet.monadscan.com/address/${contract}`} target="_blank" rel="noreferrer" className="hover:text-text-primary">Contract</a>
+            )}
+            <a href="https://github.com/riorblade/socemon" target="_blank" rel="noreferrer" className="hover:text-text-primary">GitHub</a>
+          </span>
+        </div>
       </footer>
     </div>
   )
