@@ -61,8 +61,9 @@ Vercel Hobby works as is: import the repo, add the env vars, add the domain to t
 
 ```
 contracts/   Socemon.sol, Foundry tests, deploy script, socemon.json (species catalog)
-app/         Home (/), trainer profile (/u/[address]), /checkin, /wall, API routes
-components/  Sign-in gate, monster art, catch reveal
+app/         Landing (/), the app (/app, /app/dex, /app/qr, /app/event, /app/me), trainer profile (/u/[address]),
+             /checkin, /wall, API routes
+components/  Sign-in gate, bottom nav, monster art, catch reveal
 lib/         ABI, relayer, sessions, check-in tokens, browser hooks
 e2e/         Pure, API and onchain flow tests
 ```
