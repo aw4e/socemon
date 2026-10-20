@@ -22,6 +22,15 @@ export default function TrainerPage() {
   const profile = trainer.profile
 
   if (target && trainer.loading) return <PageSpinner />
+  if (target && trainer.error) {
+    return (
+      <main className="min-h-svh flex flex-col items-center justify-center gap-3 px-8 text-center">
+        <h1 className="font-display text-[26px] text-text-primary">Monad is busy</h1>
+        <p className="font-sans text-[14px] text-text-secondary">Could not read this trainer from the chain.</p>
+        <Button onClick={() => trainer.refetch()}>Try again</Button>
+      </main>
+    )
+  }
   if (!target || !profile?.registered) {
     return (
       <main className="min-h-svh flex flex-col items-center justify-center gap-3 px-8 text-center">
