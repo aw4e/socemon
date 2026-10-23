@@ -8,4 +8,4 @@ remappings = [
   "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
   "forge-std/=lib/forge-std/src/",
 ]
-fs_permissions = [{ access = "read", path = "./socemon.json" }]
+fs_permissions = [{ access = "read", path = "./socemon.json" }, { access = "read", path = "./wearables.json" }]

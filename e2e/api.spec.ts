@@ -3,7 +3,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { createSiweMessage } from 'viem/siwe'
 
 /* Runs against a dev server (npm run test:api starts one). No wallet needed: every case here is a rejection. */
-const WRITES = ['/api/register', '/api/connect', '/api/approve', '/api/hatch', '/api/partner', '/api/checkin']
+const WRITES = ['/api/register', '/api/connect', '/api/approve', '/api/hatch', '/api/partner', '/api/checkin', '/api/box', '/api/equip']
 
 test('every write route needs a session', async ({ request }) => {
   for (const path of WRITES) expect((await request.post(path, { data: {} })).status(), path).toBe(401)

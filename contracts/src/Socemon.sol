@@ -18,6 +18,11 @@ contract Socemon is ERC1155, AccessControl {
     uint8 public constant MAX_ROLE = 5;
     uint8 public constant POOL_EVENT = 6;
     uint8 public constant POOL_BONUS = 7;
+    /// Wearables: tradeable items that blind boxes drop, worn in one of SLOTS slots on the trainer's avatar.
+    uint8 public constant POOL_ITEM = 8;
+    uint8 public constant SLOTS = 9;
+    /// Every trainer's avatar is its own soulbound token: AVATAR_FLAG | address, so its metadata can show what they wear.
+    uint256 public constant AVATAR_FLAG = 1 << 255;
     uint8 private constant ALL_TYPES = 0x3E; // bits 1..5, one per role type
     uint8 private constant REQUESTED = 1;
     uint8 private constant CONNECTED = 2;
@@ -31,6 +36,13 @@ contract Socemon is ERC1155, AccessControl {
         uint32 minted;
         bool transferable;
         bool exists;
+    }
+
+    /// Slots: 0 skin, 1 bottom, 2 top, 3 outer, 4 hair, 5 head, 6 eyewear, 7 hand, 8 back.
+    struct ItemInit {
+        uint256 id;
+        uint8 slot;
+        uint32 maxSupply;
     }
 
     struct SpeciesInit {
@@ -59,6 +71,9 @@ contract Socemon is ERC1155, AccessControl {
     mapping(address => address[]) private _incoming;
     mapping(address => address[]) private _connections;
     mapping(address => uint16[6]) private _eggs;
+    mapping(uint256 => uint8) public slotOf;
+    mapping(address => uint16) public boxes;
+    mapping(address => uint256[9]) private _equipped;
     string private _baseUri;
     uint256 private _nonce;
 
@@ -69,6 +84,8 @@ contract Socemon is ERC1155, AccessControl {
     event DropMinted(address indexed to, uint256 id);
     event NexmonUnlocked(address indexed to);
     event PartnerSet(address indexed user, uint256 id);
+    event BoxOpened(address indexed to, uint256 id);
+    event Equipped(address indexed user, uint8 slot, uint256 id);
 
     error AlreadyConnected();
     error AlreadyHasDrop();
@@ -77,6 +94,8 @@ contract Socemon is ERC1155, AccessControl {
     error InvalidName();
     error InvalidPool();
     error InvalidRole();
+    error InvalidSlot();
+    error NoBox();
     error InvalidSpecies();
     error NoEgg();
     error NoRequest();
@@ -97,9 +116,20 @@ contract Socemon is ERC1155, AccessControl {
     function addSpecies(SpeciesInit[] calldata list) external onlyRole(DEFAULT_ADMIN_ROLE) {
         for (uint256 i; i < list.length; i++) {
             SpeciesInit calldata s = list[i];
-            if (s.id == STARTER_ID || species[s.id].exists || s.pool > POOL_BONUS) revert InvalidSpecies();
+            if (s.id == STARTER_ID || s.id >= AVATAR_FLAG || species[s.id].exists || s.pool > POOL_BONUS) revert InvalidSpecies();
             species[s.id] = Species(s.pool, s.maxSupply, 0, s.transferable, true);
             if (s.pool < POOL_EVENT) _pools[s.pool].push(s.id);
+        }
+    }
+
+    function addItems(ItemInit[] calldata list) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for (uint256 i; i < list.length; i++) {
+            ItemInit calldata it = list[i];
+            if (it.id == STARTER_ID || it.id >= AVATAR_FLAG || species[it.id].exists) revert InvalidSpecies();
+            if (it.slot >= SLOTS) revert InvalidSlot();
+            species[it.id] = Species(POOL_ITEM, it.maxSupply, 0, true, true);
+            slotOf[it.id] = it.slot;
+            _pools[POOL_ITEM].push(it.id);
         }
     }
 
@@ -119,6 +149,7 @@ contract Socemon is ERC1155, AccessControl {
         p.role = role;
         p.registered = true;
         _mint(user, STARTER_ID, 1, "");
+        _mint(user, avatarOf(user), 1, "");
         emit Registered(user, displayName, role);
     }
 
@@ -175,7 +206,30 @@ contract Socemon is ERC1155, AccessControl {
         emit DropMinted(user, id);
     }
 
+    function openBox(address user) external onlyRole(MINTER_ROLE) returns (uint256 id) {
+        if (boxes[user] == 0) revert NoBox();
+        boxes[user]--;
+        id = _pick(POOL_ITEM, user);
+        if (id == STARTER_ID) revert SoldOut();
+        species[id].minted++;
+        _mint(user, id, 1, "");
+        emit BoxOpened(user, id);
+    }
+
+    /// `id` 0 takes off whatever is in `slot`.
+    function equip(address user, uint8 slot, uint256 id) external onlyRole(MINTER_ROLE) {
+        if (slot >= SLOTS) revert InvalidSlot();
+        if (id != 0) {
+            if (species[id].pool != POOL_ITEM || !species[id].exists || slotOf[id] != slot) revert InvalidSlot();
+            if (balanceOf(user, id) == 0) revert NotOwned();
+        }
+        _equipped[user][slot] = id;
+        emit Equipped(user, slot, id);
+    }
+
+    /// The partner is the monster that walks next to the avatar as its pet.
     function setPartner(address user, uint256 id) external onlyRole(MINTER_ROLE) {
+        if (species[id].pool == POOL_ITEM || id >= AVATAR_FLAG) revert InvalidSpecies();
         if (balanceOf(user, id) == 0) revert NotOwned();
         _profiles[user].partner = id;
         emit PartnerSet(user, id);
@@ -209,6 +263,14 @@ contract Socemon is ERC1155, AccessControl {
         }
     }
 
+    function equippedOf(address user) external view returns (uint256[9] memory) {
+        return _equipped[user];
+    }
+
+    function avatarOf(address user) public pure returns (uint256) {
+        return AVATAR_FLAG | uint160(user);
+    }
+
     function poolSpecies(uint8 pool) external view returns (uint256[] memory) {
         return _pools[pool];
     }
@@ -230,6 +292,17 @@ contract Socemon is ERC1155, AccessControl {
             }
         }
         super._update(from, to, ids, values);
+        // A sold or given-away wearable comes off the seller's avatar.
+        if (from == address(0)) return;
+        for (uint256 i; i < ids.length; i++) {
+            uint256 id = ids[i];
+            if (species[id].pool != POOL_ITEM || balanceOf(from, id) > 0) continue;
+            uint8 slot = slotOf[id];
+            if (_equipped[from][slot] == id) {
+                delete _equipped[from][slot];
+                emit Equipped(from, slot, 0);
+            }
+        }
     }
 
     /// Each side gets an Egg of the other side's role.
@@ -240,6 +313,8 @@ contract Socemon is ERC1155, AccessControl {
         _connections[b].push(a);
         _eggs[a][_profiles[b].role]++;
         _eggs[b][_profiles[a].role]++;
+        boxes[a]++;
+        boxes[b]++;
         emit Connected(a, b);
     }
 

@@ -55,3 +55,10 @@ export function hatchResult(logs: Log[]): { monsterId: number; nexmon: boolean }
   if (!hatched || hatched.eventName !== 'EggHatched') throw new Error('EggHatched missing from receipt')
   return { monsterId: Number(hatched.args.id), nexmon: events.some((e) => e.eventName === 'NexmonUnlocked') }
 }
+
+/** Reads the wearable a blind box dropped from an openBox receipt. */
+export function boxResult(logs: Log[]): number {
+  const opened = parseEventLogs({ abi: SOCEMON_ABI, logs, eventName: 'BoxOpened' })[0]
+  if (!opened) throw new Error('BoxOpened missing from receipt')
+  return Number(opened.args.id)
+}

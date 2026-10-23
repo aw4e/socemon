@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test'
 import { POOL, ROLES, SPECIES, TYPE_COLOR, colorOf, speciesById, speciesInPool, typeName, typesCaught } from '../lib/socemon'
 import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
 import { SOCEMON_ABI } from '../lib/abi'
-import { gasLimit, hatchResult } from '../lib/chain'
+import { SLOT_NAMES, WEARABLES, renderAvatar, renderWearable } from '../lib/avatar'
+import { boxResult, gasLimit, hatchResult } from '../lib/chain'
 import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, verifyCheckinToken } from '../lib/checkin'
 import { errorFor } from '../lib/errors'
 import { parseScan } from '../lib/scan'
@@ -46,6 +47,24 @@ test.describe('socemon catalog', () => {
   })
 })
 
+test.describe('wearables', () => {
+  test('ids are unique, slots valid, and every wearable draws something on the bare avatar', () => {
+    expect(new Set(WEARABLES.map((w) => w.id)).size).toBe(WEARABLES.length)
+    const bare = renderAvatar(Array(SLOT_NAMES.length).fill(0))
+    for (const w of WEARABLES) {
+      expect(w.slot, w.name).toBeLessThan(SLOT_NAMES.length)
+      expect(renderWearable(w.id), w.name).not.toBe(bare)
+    }
+    expect(renderWearable(999)).toBeNull()
+  })
+
+  test('a hat or hood hides the hair under it', () => {
+    const hair = renderAvatar([0, 0, 0, 0, 140])
+    expect(hair).toContain('#4A3426')
+    expect(renderAvatar([0, 0, 0, 0, 140, 150])).not.toContain('#4A3426')
+  })
+})
+
 test.describe('hatch receipts', () => {
   const to = '0x00000000000000000000000000000000000000a1'
   /* encodeEventTopics types slots as Hex | Hex[] | null; every slot here is a plain Hex */
@@ -66,6 +85,12 @@ test.describe('hatch receipts', () => {
 
   test('throws when the receipt has no hatch event', () => {
     expect(() => hatchResult([nexmon])).toThrow(/EggHatched/)
+  })
+
+  test('reads the wearable a blind box dropped', () => {
+    const opened = log(encodeEventTopics({ abi: SOCEMON_ABI, eventName: 'BoxOpened', args: { to } }), encodeAbiParameters([{ type: 'uint256' }], [131n]))
+    expect(boxResult([nexmon, opened])).toBe(131)
+    expect(() => boxResult([nexmon])).toThrow(/BoxOpened/)
   })
 })
 

@@ -373,4 +373,100 @@ contract SocemonTest is Test {
         for (uint8 p = 1; p <= 5; p++) assertEq(s.poolSpecies(p).length, 3);
         assertEq(s.poolSpecies(6).length, 0);
     }
+
+    // ---- wearables ----
+
+    function _item(uint256 id, uint8 slot, uint32 maxSupply) internal {
+        Socemon.ItemInit[] memory list = new Socemon.ItemInit[](1);
+        list[0] = Socemon.ItemInit(id, slot, maxSupply);
+        s.addItems(list);
+    }
+
+    function _open(address user) internal returns (uint256) {
+        vm.prank(minter);
+        return s.openBox(user);
+    }
+
+    function test_registerMintsSoulboundAvatar() public {
+        _register(alice, 1);
+        uint256 avatar = s.avatarOf(alice);
+        assertEq(avatar, s.AVATAR_FLAG() | uint160(alice));
+        assertEq(s.balanceOf(alice, avatar), 1);
+        vm.prank(alice);
+        vm.expectRevert(Socemon.Soulbound.selector);
+        s.safeTransferFrom(alice, bob, avatar, 1, "");
+    }
+
+    function test_connectGivesBothABoxAndOpeningMintsAWearable() public {
+        _item(100, 0, 5);
+        _register(alice, 1);
+        _egg(alice, 2);
+        assertEq(s.boxes(alice), 1);
+        uint256 id = _open(alice);
+        assertEq(id, 100);
+        assertEq(s.balanceOf(alice, 100), 1);
+        assertEq(s.boxes(alice), 0);
+        vm.expectRevert(Socemon.NoBox.selector);
+        _open(alice);
+    }
+
+    function test_soldOutBoxReverts() public {
+        _item(100, 0, 1);
+        _register(alice, 1);
+        _egg(alice, 2);
+        _egg(alice, 2);
+        _open(alice);
+        vm.expectRevert(Socemon.SoldOut.selector);
+        _open(alice);
+        assertEq(s.boxes(alice), 1);
+    }
+
+    function test_equipChecksSlotAndOwnershipAndTransferTakesItOff() public {
+        _item(100, 0, 5);
+        _register(alice, 1);
+        _register(bob, 2);
+        vm.startPrank(minter);
+        s.requestConnect(alice, bob);
+        s.approveConnect(bob, alice);
+        vm.expectRevert(Socemon.NotOwned.selector);
+        s.equip(alice, 0, 100);
+        s.openBox(alice);
+        vm.expectRevert(Socemon.InvalidSlot.selector);
+        s.equip(alice, 1, 100);
+        vm.expectRevert(Socemon.InvalidSlot.selector);
+        s.equip(alice, 9, 0);
+        s.equip(alice, 0, 100);
+        vm.stopPrank();
+        assertEq(s.equippedOf(alice)[0], 100);
+
+        vm.prank(alice);
+        s.safeTransferFrom(alice, bob, 100, 1, "");
+        assertEq(s.equippedOf(alice)[0], 0);
+        assertEq(s.balanceOf(bob, 100), 1);
+    }
+
+    function test_petCannotBeAWearableOrAvatar() public {
+        _item(100, 0, 5);
+        _register(alice, 1);
+        _egg(alice, 2);
+        _open(alice);
+        vm.startPrank(minter);
+        vm.expectRevert(Socemon.InvalidSpecies.selector);
+        s.setPartner(alice, 100);
+        uint256 avatar = s.avatarOf(alice);
+        vm.expectRevert(Socemon.InvalidSpecies.selector);
+        s.setPartner(alice, avatar);
+        vm.stopPrank();
+    }
+
+    function test_wearablesJsonSeedsEveryItem() public {
+        Socemon.ItemInit[] memory list = new Deploy().loadItems();
+        s.addItems(list);
+        assertEq(s.poolSpecies(8).length, list.length);
+        assertEq(s.slotOf(181), 8);
+        (uint8 pool, uint32 maxSupply, , bool transferable, ) = s.species(181);
+        assertEq(pool, 8);
+        assertEq(maxSupply, 10);
+        assertTrue(transferable);
+    }
 }
