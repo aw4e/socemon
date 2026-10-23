@@ -14,14 +14,20 @@ export type Catch = { monsterId: number; tx: string; ms: number; nexmon?: boolea
 
 const SIGNED_OUT = 'socemon:signed-out'
 
-/** POSTs JSON to an API route and throws its error message. A 401 tells every useSession to ask for sign-in again. */
-export async function post<T = unknown>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+/** Calls an API route and throws its error message. A 401 tells every useSession to ask for sign-in again. */
+export async function request<T = unknown>(method: string, path: string, body?: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method,
+    headers: body === undefined ? undefined : { 'content-type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
   const data = await res.json().catch(() => ({}))
   if (res.status === 401) window.dispatchEvent(new Event(SIGNED_OUT))
   if (!res.ok) throw new Error(data.error ?? 'Something went wrong')
   return data as T
 }
+
+export const post = <T = unknown>(path: string, body: unknown) => request<T>('POST', path, body)
 
 /** True when the page was opened with `?preview=hidden`: the event drop is drawn as a stranger sees it before the event day, even if
     you already hold it. Looks only; nothing is read from or written to the chain. Handy for the admin wallet that was granted every item. */

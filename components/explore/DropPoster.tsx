@@ -1,11 +1,11 @@
 'use client'
+import Link from 'next/link'
+import { QrCode } from 'lucide-react'
 import { monadTestnet } from 'viem/chains'
 import { useReadContracts } from 'wagmi'
 import { MonsterStage } from '@/components/socemon/MonsterStage'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
-import { useUser } from '@/lib/client'
-import Link from 'next/link'
-import { QrCode } from 'lucide-react'
+import { usePreviewHidden, useUser } from '@/lib/client'
 import { MONAD_PURPLE, isDropWearable, speciesById } from '@/lib/socemon'
 
 const STEPS = [
@@ -14,8 +14,19 @@ const STEPS = [
   'Tap the button. The drop is yours, and your attendance is onchain.',
 ]
 
-/* The event tab as a drop poster: who the drop is (a silhouette until you catch it), how many are left, and how to check in. */
-export function EventScreen({ name, dropId, live, host }: { name: string; dropId: number; live: boolean; host: boolean }) {
+export interface DropInfo { name: string; dropId: number; live: boolean; host: boolean; startsAt: string | null; endsAt: string | null; revealed: boolean }
+
+/** "Sat, 24 Oct · 07:00 to 19:00 WIB". The event is in Jogja, so times are shown in Jakarta time whatever the phone says. */
+export function whenLabel(startsAt: string | null, endsAt: string | null): string | null {
+  if (!startsAt) return null
+  const tz = 'Asia/Jakarta'
+  const day = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: tz }).format(new Date(startsAt))
+  const time = (iso: string) => new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: tz }).format(new Date(iso))
+  return `${day} · ${time(startsAt)}${endsAt ? ` to ${time(endsAt)}` : ''} WIB`
+}
+
+/* The live event as a drop poster: who the drop is (a silhouette until you catch it), how many are left, and how to check in. */
+export function DropPoster({ name, dropId, live, host, startsAt, endsAt, revealed }: DropInfo) {
   const user = useUser()
   const drop = speciesById(dropId)
   const contract = { address: socemonAddress(), abi: SOCEMON_ABI, chainId: monadTestnet.id } as const
@@ -29,10 +40,14 @@ export function EventScreen({ name, dropId, live, host }: { name: string; dropId
   })
   const minted = data?.[0][2]
   const claimed = data?.[1] ?? false
+  const when = whenLabel(startsAt, endsAt)
+  /* hidden until the event day begins (or you already hold it) */
+  const previewHidden = usePreviewHidden()
+  const shown = !previewHidden && (claimed || revealed)
   const left = drop && minted != null ? Math.max(0, drop.maxSupply - minted) : null
 
   return (
-    <div className="pt-6">
+    <div>
       {host && (
         <Link
           href="/wall"
@@ -54,13 +69,14 @@ export function EventScreen({ name, dropId, live, host }: { name: string; dropId
         </div>
 
         <div className="relative z-10 mt-2">
-          <MonsterStage id={dropId} size={190} silhouette={!claimed} ghost={claimed ? drop?.name : '???'} />
+          <MonsterStage id={dropId} size={190} silhouette={!shown} raised={isDropWearable(dropId)} mark={!shown && isDropWearable(dropId) ? '?' : undefined} ghost={isDropWearable(dropId) ? 'MONAD' : shown ? drop?.name : '???'} />
         </div>
 
         <div className="relative z-10 flex items-end justify-between gap-4 mt-1">
           <div className="min-w-0">
             <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.12em] text-white/70 truncate">{name}</p>
-            <p className="font-poster text-[46px] uppercase leading-none mt-1">{claimed ? drop?.name : 'Mystery drop'}</p>
+            {when && <p className="font-sans text-[12px] font-bold text-white/80 mt-0.5">{when}</p>}
+            <p className="font-poster text-[46px] uppercase leading-none mt-1">{shown ? drop?.name : 'Mystery drop'}</p>
           </div>
           <div className="text-right shrink-0">
             <p className="font-poster text-[46px] leading-none">{left ?? '–'}</p>

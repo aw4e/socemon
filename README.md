@@ -112,7 +112,7 @@ Selling a worn wearable takes it off your avatar.
 
 ## Running an event
 
-1. **Hosts:** put the host wallets in `EVENT_HOSTS` (comma-separated). A host who signs in sees **Show check-in QR** on the Event tab. Put that screen on the projector. `/wall?key=<WALL_KEY>` also works on a machine with no wallet.
+1. **Hosts:** put the host wallets in `EVENT_HOSTS` (comma-separated). A host who signs in sees **Show check-in QR** at the top of the Explore tab. Put that screen on the projector. `/wall?key=<WALL_KEY>` also works on a machine with no wallet.
 2. **Drop:** set `EVENT_NAME` and `EVENT_DROP_ID`. Optionally set `EVENT_STARTS_AT` and `EVENT_ENDS_AT` to open check-in only during the event.
 3. **Gas:** fund the relayer. Each attendee costs about 6–8 transactions (sign up, connect, hatch, open, equip, check in), roughly 0.1 MON. Plan about 25 MON for 200 people.
 

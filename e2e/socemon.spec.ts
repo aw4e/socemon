@@ -11,6 +11,7 @@ import { errorFor } from '../lib/errors'
 import { perksFor, rushKitFor } from '../lib/game'
 import { parseScan } from '../lib/scan'
 import { readToken, signToken } from '../lib/session'
+import { sanitizePay, sanitizeSkills } from '../lib/explore'
 
 test.describe('socemon catalog', () => {
   test('ids are 1..20, unique, and match the spec table', () => {
@@ -262,6 +263,15 @@ test('rate limiter lets max hits through per window, then resets', () => {
   const hit = (now: number) => underLimit('rl-test', 3, 1000, now)
   expect([hit(t), hit(t), hit(t), hit(t)]).toEqual([true, true, true, false])
   expect(hit(t + 1000)).toBe(true)
+})
+
+test('explore posts: skills and pay are cleaned', () => {
+  expect(sanitizeSkills(['Solidity', 'solidity', ' ', 'Design'])).toEqual(['Solidity', 'Design'])
+  expect(sanitizeSkills('nope')).toBeNull()
+  expect(sanitizePay({ currency: 'USD', period: 'month', min: 100, max: 200 })).toEqual({ currency: 'USD', period: 'month', min: 100, max: 200 })
+  expect(sanitizePay({ currency: 'USD', period: 'month', min: 100, max: 50 })).toBeNull()
+  expect(sanitizePay({ currency: 'XXX', period: 'month', min: 100 })).toBeNull()
+  expect(sanitizePay({ currency: 'IDR', period: 'year', min: 0 })).toBeNull()
 })
 
 test('the event drop stays a mystery until midnight (Jakarta) of the event day', async () => {

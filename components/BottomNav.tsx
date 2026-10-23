@@ -1,14 +1,14 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Gamepad2, House, ScanLine, Ticket, User } from 'lucide-react'
+import { Compass, Gamepad2, House, ScanLine, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const TABS = [
   { href: '/app', label: 'Home', Icon: House },
   { href: '/app/game', label: 'Game', Icon: Gamepad2 },
   { href: '/app/qr', label: 'Scan', Icon: ScanLine },
-  { href: '/app/event', label: 'Event', Icon: Ticket },
+  { href: '/app/explore', label: 'Explore', Icon: Compass },
   { href: '/app/me', label: 'Me', Icon: User },
 ] as const
 

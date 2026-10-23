@@ -3,11 +3,12 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { createSiweMessage } from 'viem/siwe'
 
 /* Runs against a dev server (npm run test:api starts one). No wallet needed: every case here is a rejection. */
-const WRITES = ['/api/register', '/api/connect', '/api/approve', '/api/hatch', '/api/partner', '/api/checkin', '/api/box', '/api/equip']
+const WRITES = ['/api/register', '/api/connect', '/api/approve', '/api/hatch', '/api/partner', '/api/checkin', '/api/box', '/api/equip', '/api/explore/events', '/api/explore/jobs', '/api/explore/banner']
 
 test('every write route needs a session', async ({ request }) => {
   for (const path of WRITES) expect((await request.post(path, { data: {} })).status(), path).toBe(401)
   expect((await request.get('/api/auth/me')).status()).toBe(401)
+  for (const path of ['/api/explore/events', '/api/explore/jobs', '/api/explore/people']) expect((await request.get(path)).status(), path).toBe(401)
 })
 
 test('sign-in hands out a nonce cookie and rejects junk', async ({ request }) => {
@@ -53,7 +54,7 @@ test('sign-in refuses a nonce the server did not issue', async ({ request, baseU
 })
 
 test('every page renders and the landing leads into the app', async ({ request }) => {
-  const pages = ['/', '/app', '/app/game', '/app/game/flap', '/app/game/rush', '/app/qr', '/app/event', '/app/me', '/app/friends', '/app/wardrobe', '/u/0x0000000000000000000000000000000000000001', '/checkin']
+  const pages = ['/', '/app', '/app/game', '/app/game/flap', '/app/game/rush', '/app/qr', '/app/explore', '/app/me', '/app/friends', '/app/wardrobe', '/u/0x0000000000000000000000000000000000000001', '/checkin']
   for (const path of pages) expect((await request.get(path)).status(), path).toBe(200)
   const landing = await (await request.get('/')).text()
   expect(landing).toContain('Launch app')

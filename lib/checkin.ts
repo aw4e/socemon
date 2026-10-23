@@ -50,7 +50,7 @@ export function currentEvent(env: Record<string, string | undefined> = process.e
   }
 }
 
-/** Event hosts: wallets in EVENT_HOSTS (comma-separated) may open the Event Wall from the app's Event tab. */
+/** Event hosts: wallets in EVENT_HOSTS (comma-separated) may open the Event Wall from the app's Explore tab. */
 export function isHost(address: string | null | undefined, env: Record<string, string | undefined> = process.env): boolean {
   if (!address) return false
   return (env.EVENT_HOSTS ?? '').split(',').some((h) => h.trim().toLowerCase() === address.toLowerCase())

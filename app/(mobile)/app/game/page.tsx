@@ -90,7 +90,7 @@ export default function GameHub() {
         <ul className="space-y-2">
           {[
             { href: '/app/qr', title: 'Meet people', body: 'Every new connection gives you a blind box with a wearable.' },
-            { href: '/app/event', title: 'Check in at events', body: 'Event drops like the Blitz Jacket carry rare perks.' },
+            { href: '/app/explore', title: 'Check in at events', body: 'Event drops like the Blitz Jacket carry rare perks.' },
             { href: '/app/wardrobe', title: 'Gear up', body: 'Wear what you own. Only worn wearables count in games.' },
             { href: '/app/me#pet', title: 'Pick your pet', body: 'Rarer pets multiply your score.' },
           ].map((s) => (
