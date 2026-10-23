@@ -8,6 +8,7 @@ import { Reveal, useCatch } from '@/components/socemon/Reveal'
 import { TypeChip } from '@/components/socemon/TypeChip'
 import { Button } from '@/components/ui/Button'
 import { post, useAct, useProfiles, useTrainer, useUser, type Catch } from '@/lib/client'
+import { useDragScroll } from '@/lib/use-drag-scroll'
 import { SPECIES, TYPE_COLOR, typeName, typesCaught } from '@/lib/socemon'
 import { shortAddress } from '@/lib/utils'
 
@@ -18,6 +19,7 @@ export default function HomePage() {
   const profileOf = useProfiles(trainer.pending)
   const { busy, note, act } = useAct(trainer.refetch)
   const reveal = useCatch()
+  const eggScroll = useDragScroll()
 
   const profile = trainer.profile
   const partner = Number(profile?.partner ?? 0n)
@@ -108,7 +110,7 @@ export default function HomePage() {
             </div>
           </div>
         ) : (
-          <ul className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-2">
+          <ul {...eggScroll} className="flex gap-3 overflow-x-auto -mx-5 px-5 pb-2 cursor-grab active:cursor-grabbing select-none">
             {eggs.map(({ count, pool }) => {
               const color = TYPE_COLOR[pool]
               return (

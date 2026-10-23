@@ -32,7 +32,8 @@ export function Gate({ hero, children }: { hero?: React.ReactNode; children: (us
 
   if ((session.loading && !preview) || trainer.loading) {
     return (
-      <div className="flex justify-center py-24" role="status" aria-label="Loading">
+      /* a whole screen when the gate guards a page (it has a hero); a small inline spinner inside a card */
+      <div className={hero ? 'flex items-center justify-center min-h-svh' : 'flex items-center justify-center py-10'} role="status" aria-label="Loading">
         <div className="w-8 h-8 rounded-full border-[3px] border-(--border-default) border-t-primary animate-spin" />
       </div>
     )

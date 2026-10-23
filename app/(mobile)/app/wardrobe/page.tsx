@@ -6,6 +6,7 @@ import { BoxReveal, type Opened } from '@/components/socemon/BoxReveal'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { Button } from '@/components/ui/Button'
 import { SLOT_NAMES, WEARABLES, renderAvatar, wearableById, wearableImage } from '@/lib/avatar'
+import { useDragScroll } from '@/lib/use-drag-scroll'
 import { post, useAct, useTrainer, useUser, useWardrobe } from '@/lib/client'
 import { TIER_COLOR } from '@/lib/socemon'
 import { cn } from '@/lib/utils'
@@ -18,6 +19,7 @@ export default function WardrobePage() {
   const wardrobe = useWardrobe(user)
   const { busy, note, act } = useAct(wardrobe.refetch)
   const [slot, setSlot] = useState(0)
+  const scroll = useDragScroll()
   const [opened, setOpened] = useState<Opened | null>(null)
 
   const partner = Number(trainer.profile?.partner ?? 0n)
@@ -69,7 +71,7 @@ export default function WardrobePage() {
         <p className="font-sans text-[13px] font-bold text-text-tertiary mt-2">Every new connection gives you and your friend one box.</p>
       )}
 
-      <div role="tablist" aria-label="Slot" className="mt-5 -mx-5 px-5 flex gap-2 overflow-x-auto">
+      <div role="tablist" aria-label="Slot" {...scroll} className="mt-5 -mx-5 px-5 flex gap-2 overflow-x-auto cursor-grab active:cursor-grabbing select-none">
         {SLOT_NAMES.map((name, i) => (
           <button
             key={name}
