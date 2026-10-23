@@ -12,6 +12,7 @@ import { Scanner } from '@/components/Scanner'
 import { Button } from '@/components/ui/Button'
 import { post, useTrainer, useUser } from '@/lib/client'
 import { parseScan } from '@/lib/scan'
+import { recordScan } from '@/lib/scans'
 import { cn } from '@/lib/utils'
 
 const MODES = [
@@ -69,6 +70,7 @@ function ScanMode() {
       setHint('That is your own code.')
       return false
     }
+    recordScan(user, scan.address)
     /* an old printed or shared profile link has no live code: open the profile to send a request */
     if (!scan.code) {
       router.push(`/u/${scan.address}`)
