@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose'
+import { isHost } from '@/lib/checkin'
 
 /* Stateless sessions: signed cookies instead of a session table. The audience keeps a ticket or a nonce from passing as a session. */
 
@@ -47,3 +48,9 @@ export const cookieOptions = (maxAge: number) => ({
   maxAge,
   path: '/',
 })
+
+/** The wall opens for a host's session, or for the WALL_KEY link (a fallback for a projector with no wallet). */
+export async function canOpenWall(sessionCookie: string | undefined, key: string | null | undefined): Promise<boolean> {
+  if (process.env.WALL_KEY && key === process.env.WALL_KEY) return true
+  return isHost(await readToken(sessionSecret(), 'session', sessionCookie))
+}

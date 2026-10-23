@@ -27,7 +27,7 @@ export function WallScreen({ wallKey, eventName, dropId }: { wallKey: string; ev
     /* polls back to back, never overlapping, so a slow RPC cannot read the same blocks twice */
     async function poll() {
       try {
-        const res = await fetch(`/api/wall?key=${encodeURIComponent(wallKey)}${cursor ? `&from=${cursor}` : ''}`)
+        const res = await fetch(`/api/wall?key=${encodeURIComponent(wallKey)}${cursor ? `&from=${cursor}` : ''}`) // empty key: the host's session cookie lets it in
         if (res.ok) {
           const data: { token: string; dropped: number; feed: FeedItem[]; cursor: string } = await res.json()
           if (cancelled) return

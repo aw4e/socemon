@@ -4,6 +4,7 @@ import { HttpError, handle } from '@/lib/api'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
 import { publicClient } from '@/lib/chain'
 import { CHECKIN_EVENT, checkinSecret, checkinToken, currentEvent } from '@/lib/checkin'
+import { SESSION_COOKIE, canOpenWall } from '@/lib/session'
 import { NEXMON_ID, STARTER_ID, speciesById } from '@/lib/socemon'
 import { shortAddress } from '@/lib/utils'
 
@@ -16,8 +17,9 @@ type Line = { key: string; user: Address; other?: Address; monsterId: number | n
 /** Event Wall data: the current check-in token, the drop count, and every catch since the `from` block. */
 export function GET(req: NextRequest) {
   return handle(async () => {
-    const key = process.env.WALL_KEY
-    if (!key || req.nextUrl.searchParams.get('key') !== key) throw new HttpError('Wrong wall key', 403)
+    if (!(await canOpenWall(req.cookies.get(SESSION_COOKIE)?.value, req.nextUrl.searchParams.get('key')))) {
+      throw new HttpError('Only event hosts can open the wall', 403)
+    }
 
     const event = currentEvent()
     const contract = { address: socemonAddress(), abi: SOCEMON_ABI } as const

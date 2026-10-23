@@ -5,7 +5,7 @@ import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
 import { SOCEMON_ABI } from '../lib/abi'
 import { SLOT_NAMES, WEARABLES, renderAvatar, renderWearable } from '../lib/avatar'
 import { boxResult, gasLimit, hatchResult } from '../lib/chain'
-import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, verifyCheckinToken } from '../lib/checkin'
+import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, isHost, verifyCheckinToken } from '../lib/checkin'
 import { errorFor } from '../lib/errors'
 import { parseScan } from '../lib/scan'
 import { readToken, signToken } from '../lib/session'
@@ -45,6 +45,15 @@ test.describe('socemon catalog', () => {
     expect(typesCaught(new Set([0, 16, 19, 20]))).toBe(0)
     expect(typesCaught(new Set([1, 2, 4, 15]))).toBe(3)
   })
+})
+
+test('only wallets in EVENT_HOSTS are hosts, any letter case', () => {
+  const env = { EVENT_HOSTS: '0xAbC0000000000000000000000000000000000001, 0x0000000000000000000000000000000000000002' }
+  expect(isHost('0xabc0000000000000000000000000000000000001', env)).toBe(true)
+  expect(isHost('0x0000000000000000000000000000000000000002', env)).toBe(true)
+  expect(isHost('0x0000000000000000000000000000000000000003', env)).toBe(false)
+  expect(isHost(null, env)).toBe(false)
+  expect(isHost('0x0000000000000000000000000000000000000002', {})).toBe(false)
 })
 
 test.describe('wearables', () => {

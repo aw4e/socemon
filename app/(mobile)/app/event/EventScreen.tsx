@@ -5,6 +5,7 @@ import { MonsterStage } from '@/components/socemon/MonsterStage'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
 import { useUser } from '@/lib/client'
 import Link from 'next/link'
+import { QrCode } from 'lucide-react'
 import { MONAD_PURPLE, isDropWearable, speciesById } from '@/lib/socemon'
 
 const STEPS = [
@@ -14,7 +15,7 @@ const STEPS = [
 ]
 
 /* The event tab as a drop poster: who the drop is (a silhouette until you catch it), how many are left, and how to check in. */
-export function EventScreen({ name, dropId, live }: { name: string; dropId: number; live: boolean }) {
+export function EventScreen({ name, dropId, live, host }: { name: string; dropId: number; live: boolean; host: boolean }) {
   const user = useUser()
   const drop = speciesById(dropId)
   const contract = { address: socemonAddress(), abi: SOCEMON_ABI, chainId: monadTestnet.id } as const
@@ -32,6 +33,14 @@ export function EventScreen({ name, dropId, live }: { name: string; dropId: numb
 
   return (
     <div className="pt-6">
+      {host && (
+        <Link
+          href="/wall"
+          className="mb-4 flex items-center justify-center gap-2 h-14 rounded-2xl bg-primary text-primary-fg font-sans text-[15px] font-extrabold uppercase tracking-[0.05em] shadow-[0_4px_0_var(--primary-shadow)]"
+        >
+          <QrCode className="w-5 h-5" /> Show check-in QR
+        </Link>
+      )}
       <section
         className="grain relative overflow-hidden rounded-[34px] px-5 pt-5 pb-7 text-white"
         style={{ background: `linear-gradient(170deg, ${MONAD_PURPLE} 0%, #3A2A9E 55%, #170F3D 100%)` }}
