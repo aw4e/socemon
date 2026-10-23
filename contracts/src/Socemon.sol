@@ -88,6 +88,7 @@ contract Socemon is ERC1155, AccessControl {
     event NexmonUnlocked(address indexed to);
     event PartnerSet(address indexed user, uint256 id);
     event BoxOpened(address indexed to, uint256 id);
+    event ItemGranted(address indexed to, uint256 id);
     event Equipped(address indexed user, uint8 slot, uint256 id);
 
     error AlreadyConnected();
@@ -208,6 +209,21 @@ contract Socemon is ERC1155, AccessControl {
         s.minted++;
         _mint(user, id, 1, "");
         emit DropMinted(user, id);
+    }
+
+    /// Admin gift: one of each listed wearable. It counts against the wearable's supply like any other mint, and an event
+    /// drop given this way also uses up the trainer's one claim of it.
+    function grantItems(address user, uint256[] calldata ids) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for (uint256 i; i < ids.length; i++) {
+            uint256 id = ids[i];
+            if (!isWearable[id]) revert UnknownSpecies();
+            Species storage s = species[id];
+            if (s.minted >= s.maxSupply) revert SoldOut();
+            s.minted++;
+            if (s.pool == POOL_EVENT) claimedDrop[user][id] = true;
+            _mint(user, id, 1, "");
+            emit ItemGranted(user, id);
+        }
     }
 
     function openBox(address user) external onlyRole(MINTER_ROLE) returns (uint256 id) {

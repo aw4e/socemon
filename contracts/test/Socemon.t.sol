@@ -498,4 +498,46 @@ contract SocemonTest is Test {
         s.safeTransferFrom(alice, carol, 190, 1, "");
         assertEq(s.equippedOf(alice)[3], 0);
     }
+
+    function _items() internal {
+        Socemon.ItemInit[] memory list = new Socemon.ItemInit[](3);
+        list[0] = Socemon.ItemInit(100, 0, 5, false);
+        list[1] = Socemon.ItemInit(110, 1, 1, false);
+        list[2] = Socemon.ItemInit(190, 3, 2, true);
+        s.addItems(list);
+    }
+
+    function test_grantItemsGivesOneOfEachAndCountsSupply() public {
+        _items();
+        uint256[] memory ids = new uint256[](3);
+        ids[0] = 100; ids[1] = 110; ids[2] = 190;
+        s.grantItems(alice, ids);
+        for (uint256 i; i < 3; i++) assertEq(s.balanceOf(alice, ids[i]), 1);
+        (, , uint32 minted, , ) = s.species(110);
+        assertEq(minted, 1);
+        assertTrue(s.claimedDrop(alice, 190));
+        // the drop's claim is used up, so the check-in route cannot hand her a second one
+        _register(alice, 1);
+        vm.prank(minter);
+        vm.expectRevert(Socemon.AlreadyHasDrop.selector);
+        s.mintDrop(alice, 190);
+    }
+
+    function test_grantItemsIsAdminOnlyWearablesOnlyAndRespectsSupply() public {
+        _items();
+        uint256[] memory one = new uint256[](1);
+        one[0] = 110;
+        vm.prank(minter);
+        vm.expectRevert();
+        s.grantItems(alice, one);
+
+        uint256[] memory notItem = new uint256[](1);
+        notItem[0] = 999;
+        vm.expectRevert(Socemon.UnknownSpecies.selector);
+        s.grantItems(alice, notItem);
+
+        s.grantItems(alice, one);
+        vm.expectRevert(Socemon.SoldOut.selector);
+        s.grantItems(bob, one); // 110 has a supply of 1
+    }
 }
