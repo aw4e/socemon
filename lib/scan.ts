@@ -1,6 +1,7 @@
 import { getAddress, isAddress, type Address } from 'viem'
 
-export type Scan = { kind: 'trainer'; address: Address } | { kind: 'checkin'; path: string }
+/** `code` is set when the QR came from the trainer's live "My code" screen, which connects without an approval. */
+export type Scan = { kind: 'trainer'; address: Address; code?: string } | { kind: 'checkin'; path: string }
 
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/
 
@@ -20,7 +21,10 @@ export function parseScan(text: string, origin: string): Scan | null {
   }
   if (url.origin !== origin) return null
   const trainer = url.pathname.match(/^\/u\/(0x[0-9a-fA-F]{40})\/?$/)?.[1]
-  if (trainer) return { kind: 'trainer', address: getAddress(trainer) }
+  if (trainer) {
+    const code = url.searchParams.get('c')
+    return code ? { kind: 'trainer', address: getAddress(trainer), code } : { kind: 'trainer', address: getAddress(trainer) }
+  }
   if (url.pathname === '/api/checkin/ticket' && url.searchParams.get('t')) return { kind: 'checkin', path: `${url.pathname}${url.search}` }
   return null
 }

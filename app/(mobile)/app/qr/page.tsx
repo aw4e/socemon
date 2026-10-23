@@ -1,14 +1,16 @@
 'use client'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import type { Address } from 'viem'
 import { Check, Copy, Share2 } from 'lucide-react'
 import QRCode from 'qrcode'
 import { PageHeader } from '@/components/PageHeader'
+import { Connected } from '@/components/socemon/Connected'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { Scanner } from '@/components/Scanner'
 import { Button } from '@/components/ui/Button'
-import { useTrainer, useUser } from '@/lib/client'
+import { post, useTrainer, useUser } from '@/lib/client'
 import { parseScan } from '@/lib/scan'
 import { cn } from '@/lib/utils'
 
@@ -47,7 +49,10 @@ export default function QrPage() {
 function ScanMode() {
   const user = useUser()
   const router = useRouter()
+  const trainer = useTrainer(user)
   const [hint, setHint] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [friend, setFriend] = useState<Address | null>(null)
 
   const onScan = useCallback((text: string) => {
     const scan = parseScan(text, window.location.origin)
@@ -64,9 +69,34 @@ function ScanMode() {
       setHint('That is your own code.')
       return false
     }
-    router.push(`/u/${scan.address}`)
+    /* an old printed or shared profile link has no live code: open the profile to send a request */
+    if (!scan.code) {
+      router.push(`/u/${scan.address}`)
+      return true
+    }
+    const to = scan.address
+    setBusy(true)
+    setHint('Connecting onchain…')
+    post('/api/connect', { to, code: scan.code })
+      .then(() => {
+        setHint('')
+        setFriend(to)
+        trainer.refetch()
+      })
+      .catch((err) => setHint(err instanceof Error ? err.message : 'Something went wrong'))
+      .finally(() => setBusy(false))
     return true
-  }, [router, user])
+  }, [router, user, trainer])
+
+  if (friend) return <Connected friend={friend} onDone={() => setFriend(null)} />
+  if (busy) {
+    return (
+      <section className="flex flex-col items-center text-center gap-4 py-20" role="status">
+        <div className="w-10 h-10 rounded-full border-[3px] border-(--border-default) border-t-primary animate-spin" />
+        <p className="font-sans text-[15px] font-bold text-text-secondary">{hint}</p>
+      </section>
+    )
+  }
 
   return (
     <section className="flex flex-col items-center text-center">
@@ -80,8 +110,10 @@ function ScanMode() {
 
 function CodeMode() {
   const user = useUser()
-  const trainer = useTrainer(user)
+  const trainer = useTrainer(user, 2_000)
   const [qr, setQr] = useState('')
+  const [friend, setFriend] = useState<Address | null>(null)
+  const seen = useRef<Set<string> | null>(null)
   const [link, setLink] = useState('')
   const [canShare, setCanShare] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -91,8 +123,32 @@ function CodeMode() {
     const url = `${window.location.origin}/u/${user}`
     setLink(url)
     setCanShare('share' in navigator)
-    QRCode.toDataURL(url, { margin: 1, width: 640 }).then(setQr)
+    /* the QR carries a code that rotates every 30s, so scanning it means you are here; the shared link stays plain */
+    let timer: ReturnType<typeof setTimeout>
+    async function refresh() {
+      try {
+        const { code } = await (await fetch('/api/meet')).json()
+        setQr(await QRCode.toDataURL(`${url}?c=${encodeURIComponent(code)}`, { margin: 1, width: 640 }))
+      } catch {}
+      timer = setTimeout(refresh, 20_000)
+    }
+    refresh()
+    return () => clearTimeout(timer)
   }, [user])
+
+  useEffect(() => {
+    const list = trainer.connections
+    if (!list) return
+    if (!seen.current) {
+      seen.current = new Set(list)
+      return
+    }
+    const fresh = list.find((a) => !seen.current!.has(a))
+    list.forEach((a) => seen.current!.add(a))
+    if (fresh) setFriend(fresh)
+  }, [trainer.connections])
+
+  if (friend) return <Connected friend={friend} onDone={() => setFriend(null)} />
 
   async function copy() {
     await navigator.clipboard.writeText(link)
@@ -118,7 +174,7 @@ function CodeMode() {
         </div>
       </div>
       <p className="font-sans text-[15px] font-bold text-text-secondary max-w-xs mt-6">
-        A friend scans this in their Socemon app. Approve them on Home and you both get an Egg.
+        A friend scans this in their Socemon app and you are connected right away. You both get an Egg and a blind box.
       </p>
       <div className="flex gap-3 mt-5">
         <Button variant="secondary" size="sm" onClick={copy}>

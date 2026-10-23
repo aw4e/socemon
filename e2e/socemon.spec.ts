@@ -209,6 +209,10 @@ test.describe('scanning', () => {
     expect(parseScan(`ethereum:${a}@10143`, origin)).toEqual({ kind: 'trainer', address: a })
   })
 
+  test('a live My code QR carries its rotating code', () => {
+    expect(parseScan(`${origin}/u/${a}?c=abc_123`, origin)).toEqual({ kind: 'trainer', address: a, code: 'abc_123' })
+  })
+
   test('the Event Wall code goes to check-in', () => {
     expect(parseScan(`${origin}/api/checkin/ticket?t=abc`, origin)).toEqual({ kind: 'checkin', path: '/api/checkin/ticket?t=abc' })
   })

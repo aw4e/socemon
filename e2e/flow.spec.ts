@@ -44,6 +44,15 @@ test('two trainers meet, hatch and check in onchain', async ({ playwright, baseU
   expect((await A.post('/api/connect', { data: { to: b } })).status()).toBe(409)
   await ok(B.post('/api/approve', { data: { from: a } }))
 
+  /* scanning a live My code connects at once: C scans B, no approval, and a stale code is refused */
+  const C = await playwright.request.newContext({ baseURL })
+  await signIn(C, baseURL!)
+  await ok(C.post('/api/register', { data: { name: 'Flow C', role: 3 } }))
+  expect((await C.post('/api/connect', { data: { to: b, code: 'stale' } })).status()).toBe(410)
+  const { code } = await ok(B.get('/api/meet'))
+  expect((await ok(C.post('/api/connect', { data: { to: b, code } }))).status).toBe('connected')
+  expect((await C.post('/api/connect', { data: { to: b, code } })).status()).toBe(409)
+
   /* A has exactly one Blaze Egg: two hatches at once must give one catch and one 409, never a 500 */
   const both = await Promise.all([A.post('/api/hatch', { data: { pool: 2 } }), A.post('/api/hatch', { data: { pool: 2 } })])
   expect(both.map((r) => r.status()).sort()).toEqual([200, 409])

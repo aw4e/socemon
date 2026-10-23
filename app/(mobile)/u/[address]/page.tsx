@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { getAddress, isAddress, type Address } from 'viem'
 import { monadTestnet } from 'viem/chains'
 import { useReadContracts } from 'wagmi'
@@ -9,6 +9,7 @@ import { Logo } from '@/components/brand/Logo'
 import { Gate } from '@/components/Gate'
 import { MonsterStage } from '@/components/socemon/MonsterStage'
 import { TypeChip } from '@/components/socemon/TypeChip'
+import { Connected } from '@/components/socemon/Connected'
 import { Button } from '@/components/ui/Button'
 import { PageSpinner } from '@/components/ui/PageSpinner'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
@@ -84,13 +85,16 @@ function ConnectBox({ viewer, target, name }: { viewer: Address; target: Address
   })
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [friends, setFriends] = useState(false)
+  const code = useSearchParams().get('c') ?? undefined
 
   async function connect() {
     setBusy(true)
     setError('')
     try {
-      await post('/api/connect', { to: target })
+      const { status } = await post<{ status: string }>('/api/connect', { to: target, code })
       await refetch()
+      if (status === 'connected') setFriends(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -99,6 +103,7 @@ function ConnectBox({ viewer, target, name }: { viewer: Address; target: Address
   }
 
   const [mine, theirs] = data ?? [0, 0]
+  if (friends) return <Connected friend={target} onDone={() => setFriends(false)} />
   if (viewer === target) {
     return (
       <p className="text-center font-sans text-[15px] font-bold text-text-secondary">
@@ -112,7 +117,7 @@ function ConnectBox({ viewer, target, name }: { viewer: Address; target: Address
     <div className="flex flex-col items-center gap-3 text-center">
       <Button size="lg" fullWidth loading={busy} onClick={connect}>{theirs === 1 ? `Accept ${name}` : `Connect with ${name}`}</Button>
       <p className="font-sans text-[13px] font-bold text-text-tertiary">
-        {theirs === 1 ? 'They already asked, so this connects you both right away.' : `${name} approves, then you both get an Egg.`}
+        {theirs === 1 || code ? 'This connects you both right away.' : `${name} approves, then you both get an Egg.`}
       </p>
       {error && <p role="alert" className="font-sans text-[14px] font-bold text-text-error">{error}</p>}
     </div>

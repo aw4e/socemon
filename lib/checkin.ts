@@ -52,3 +52,8 @@ export function isHost(address: string | null | undefined, env: Record<string, s
   if (!address) return false
   return (env.EVENT_HOSTS ?? '').split(',').some((h) => h.trim().toLowerCase() === address.toLowerCase())
 }
+
+/** "My code" QR tokens reuse the check-in rotation, scoped to the trainer who shows the code. */
+export const meetCode = (owner: string, now: number) => checkinToken(checkinSecret(), `meet:${owner.toLowerCase()}`, now)
+export const verifyMeetCode = (owner: string, code: unknown, now: number) =>
+  verifyCheckinToken(checkinSecret(), `meet:${owner.toLowerCase()}`, code, now)
