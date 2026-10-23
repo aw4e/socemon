@@ -13,6 +13,32 @@ Socemon brings community events and web3 games together. People come to an event
 | **Relayer** (pays gas for everyone, keep it funded) | `0x1a627F3F4A838B4948adb1bFF2b5179a70707CA3` |
 | **Repo** | https://github.com/riorblade/socemon |
 
+## The problem
+
+Community events, the people who attend them, and the web3 games that sponsor them all want the same thing: people who show up and stay. Today each side loses.
+
+**Communities struggle to fill the room and prove it.** RSVPs don't turn into attendance, check-in lists can be faked, and nobody can verify afterwards who was really there. Inside the room, most people stay with the friends they came with, because nothing gives them a reason to talk to strangers.
+
+**Attendees walk away with souvenirs, not value.** Attendance NFTs and POAPs are collectibles that do nothing, so they are forgotten the day after. Getting one often means installing a wallet, finding gas and signing transactions, which loses most newcomers before they start.
+
+**Web3 games pay a lot for users who leave.** Sponsoring an event usually buys a logo on a banner and no measurable result. Airdrops get farmed by bots and multi-wallet accounts, and the people who do claim have no reason to open the game again.
+
+## Why Socemon solves it
+
+Socemon turns the event drop into something useful: an NFT that changes how you play. Each side's problem then becomes another side's gain.
+
+| Problem | What Socemon does | Why it works |
+| --- | --- | --- |
+| No reason to come | A limited drop that makes you stronger in games, only at the event (the Blitz Jacket: 200 exist, one per wallet) | People come for scarcity plus a use, not for a badge |
+| No reason to talk to strangers | Meeting someone *is* the game: each new connection gives both of you an Egg of the other's role and a blind box. Collecting all five role types unlocks Nexmon | The incentive is to meet people unlike you: developers, founders, designers, investors, community |
+| Fake check-ins and farmed drops | Check-in and friend codes rotate every 30 seconds, and drops are capped at one per wallet onchain | A screenshot or forwarded link goes stale before it is useful, so only people in the room claim |
+| Attendance nobody can verify | Every sign-up, connection and check-in is an onchain event on Monad | Organizers and sponsors can audit the turnout themselves, with no trust in a spreadsheet |
+| NFTs that do nothing | Wearables unlock moves and perks in every game on the hub (Blitz Boost, Fly, Slash, extra lives) | Holders keep logging in, because the item matters every time they play |
+| Wallets and gas scare newcomers | Email and Google sign-in, and a relayer pays every transaction | Attendees never need MON or tokens. Joining takes one signature |
+| Sponsorship with no measurable return | The sponsor's skin or skill lands in the wallets of people who were there, and it works in the sponsor's game too | The sponsor gets real, already-equipped players, and can count holders, equips and plays onchain |
+
+**Why Monad.** Transactions confirm in about a second, so claiming a drop or opening a box feels instant while people are standing in the room. Fees are low enough that one relayer can sponsor every attendee: about 0.1 MON for a full evening of signing up, meeting people, hatching, opening, equipping and checking in.
+
 ## The ecosystem
 
 | | They get | They bring |
