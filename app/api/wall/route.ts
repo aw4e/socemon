@@ -3,7 +3,8 @@ import type { Address } from 'viem'
 import { HttpError, handle } from '@/lib/api'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
 import { publicClient } from '@/lib/chain'
-import { CHECKIN_EVENT, checkinSecret, checkinToken, currentEvent } from '@/lib/checkin'
+import { CHECKIN_EVENT, checkinSecret, checkinToken } from '@/lib/checkin'
+import { loadEvent } from '@/lib/event'
 import { SESSION_COOKIE, canOpenWall } from '@/lib/session'
 import { NEXMON_ID, STARTER_ID, speciesById } from '@/lib/socemon'
 import { shortAddress } from '@/lib/utils'
@@ -21,7 +22,7 @@ export function GET(req: NextRequest) {
       throw new HttpError('Only event hosts can open the wall', 403)
     }
 
-    const event = currentEvent()
+    const event = await loadEvent()
     const contract = { address: socemonAddress(), abi: SOCEMON_ABI } as const
     const head = await publicClient.getBlockNumber()
     const from = req.nextUrl.searchParams.get('from') ?? ''

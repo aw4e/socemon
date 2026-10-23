@@ -175,9 +175,9 @@ test.describe('the event', () => {
   const now = 1_800_000_000_000
 
   test('comes from env and is always live without a start time', () => {
-    expect(currentEvent({}, now)).toEqual({ name: 'Monad Blitz', dropId: 20, live: true })
+    expect(currentEvent({}, now)).toEqual({ name: 'Monad Blitz', dropId: 20, live: true, startsAt: null, endsAt: null })
     const env = { EVENT_NAME: 'Blitz Jakarta', EVENT_DROP_ID: '20', EVENT_STARTS_AT: new Date(now + 3600_000).toISOString() }
-    expect(currentEvent(env, now)).toEqual({ name: 'Blitz Jakarta', dropId: 20, live: false })
+    expect(currentEvent(env, now)).toMatchObject({ name: 'Blitz Jakarta', dropId: 20, live: false })
     expect(currentEvent(env, now + 3600_000).live).toBe(true)
   })
 })
@@ -262,4 +262,14 @@ test('rate limiter lets max hits through per window, then resets', () => {
   const hit = (now: number) => underLimit('rl-test', 3, 1000, now)
   expect([hit(t), hit(t), hit(t), hit(t)]).toEqual([true, true, true, false])
   expect(hit(t + 1000)).toBe(true)
+})
+
+test('the event drop stays a mystery until midnight (Jakarta) of the event day', async () => {
+  const { dropRevealed } = await import('../lib/event')
+  const starts = '2026-10-24T00:00:00.000Z' // 07:00 WIB on 24 Oct
+  const dayStart = Date.parse('2026-10-23T17:00:00.000Z') // 00:00 WIB on 24 Oct
+  expect(dropRevealed(starts, dayStart - 1)).toBe(false)
+  expect(dropRevealed(starts, dayStart)).toBe(true)
+  expect(dropRevealed(starts, Date.parse('2026-10-25T05:00:00.000Z'))).toBe(true) // after the event it stays revealed
+  expect(dropRevealed(null)).toBe(true) // no start time: always revealed (local dev)
 })

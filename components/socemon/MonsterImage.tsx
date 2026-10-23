@@ -40,7 +40,7 @@ export function MonsterImage({ id, size = 96, silhouette = false, className }: {
       height={size}
       draggable={false}
       onError={() => setBroken(true)}
-      className={cn('object-contain select-none', silhouette && 'brightness-0 opacity-20', className)}
+      className={cn('object-contain select-none', silhouette && (isDropWearable(id) ? 'brightness-0 opacity-40' : 'brightness-0 opacity-20'), className)}
     />
   )
 }

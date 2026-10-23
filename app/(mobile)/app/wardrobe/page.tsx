@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Gift, Lock } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { BoxReveal, type Opened } from '@/components/socemon/BoxReveal'
@@ -7,7 +7,7 @@ import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { Button } from '@/components/ui/Button'
 import { SLOT_NAMES, WEARABLES, renderAvatar, wearableById, wearableImage } from '@/lib/avatar'
 import { useDragScroll } from '@/lib/use-drag-scroll'
-import { post, useAct, useTrainer, useUser, useWardrobe } from '@/lib/client'
+import { post, useAct, usePreviewHidden, useTrainer, useUser, useWardrobe } from '@/lib/client'
 import { TIER_COLOR } from '@/lib/socemon'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +20,12 @@ export default function WardrobePage() {
   const { busy, note, act } = useAct(wardrobe.refetch)
   const [slot, setSlot] = useState(0)
   const scroll = useDragScroll()
+  const previewHidden = usePreviewHidden()
+  /* the event drop stays a mystery here until the event day, unless you already hold it */
+  const [drop, setDrop] = useState<{ dropId: number; revealed: boolean } | null>(null)
+  useEffect(() => {
+    fetch('/api/event').then((r) => (r.ok ? r.json() : null)).then((d) => d && setDrop({ dropId: d.dropId, revealed: d.revealed })).catch(() => {})
+  }, [])
   const [opened, setOpened] = useState<Opened | null>(null)
 
   const partner = Number(trainer.profile?.partner ?? 0n)
@@ -91,6 +97,7 @@ export default function WardrobePage() {
       <ul className="mt-4 grid grid-cols-3 gap-3">
         {items.map((w) => {
           const count = wardrobe.owned.get(w.id) ?? 0
+          const secret = (previewHidden || (!!drop && !drop.revealed)) && !!drop && w.id === drop.dropId && (previewHidden || !count)
           const wearing = wardrobe.equipped[slot] === w.id
           const color = TIER_COLOR[w.tier]
           return (
@@ -105,13 +112,13 @@ export default function WardrobePage() {
                 )}
                 style={{ borderColor: wearing ? color : 'var(--border-default)', boxShadow: wearing ? `0 0 18px ${color}88` : undefined }}
               >
-                <img src={wearableImage(w.id)} alt="" className={cn('w-full aspect-square', !count && 'grayscale opacity-30')} />
+                <img src={wearableImage(w.id)} alt="" className={cn('w-full aspect-square', !count && !secret && 'grayscale opacity-30', secret && 'brightness-0 opacity-40')} />
                 {!count && <Lock className="absolute top-2 right-2 w-4 h-4 text-text-tertiary" />}
                 {count > 1 && <span className="absolute top-2 right-2 font-mono text-[11px] font-bold text-white">×{count}</span>}
                 <span className="block px-2 py-1.5 bg-bg-surface">
-                  <span className="block font-sans text-[11px] font-extrabold truncate">{w.name}</span>
+                  <span className="block font-sans text-[11px] font-extrabold truncate">{secret ? '????' : w.name}</span>
                   <span className="block font-sans text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color }}>
-                    {wearing ? 'Wearing' : w.tier}
+                    {wearing ? 'Wearing' : secret ? 'Event drop' : w.tier}
                   </span>
                 </span>
               </button>

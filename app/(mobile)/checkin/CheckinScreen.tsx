@@ -6,26 +6,29 @@ import { Gate } from '@/components/Gate'
 import { MonsterStage } from '@/components/socemon/MonsterStage'
 import { Reveal, useCatch } from '@/components/socemon/Reveal'
 import { Button } from '@/components/ui/Button'
-import { post, type Catch } from '@/lib/client'
+import { post, usePreviewHidden, type Catch } from '@/lib/client'
 import { isDropWearable, speciesById } from '@/lib/socemon'
 
 /* Where the Event Wall QR lands once the ticket cookie is set: onboarding if needed, then the drop. */
-export function CheckinScreen({ eventName, dropId, expired }: { eventName: string; dropId: number; expired: boolean }) {
+export function CheckinScreen({ eventName, dropId, revealed, expired }: { eventName: string; dropId: number; revealed: boolean; expired: boolean }) {
   const reveal = useCatch()
   const [caught, setCaught] = useState(false)
   const drop = speciesById(dropId)
   const wearable = isDropWearable(dropId)
+  /* hidden until the event day begins (or you just caught it) */
+  const previewHidden = usePreviewHidden()
+  const shown = !previewHidden && (caught || revealed)
 
   const teaser = (
     <>
       <Logo height={24} tone="dark" />
       <p className="eyebrow mt-2">{eventName}</p>
-      <MonsterStage id={dropId} size={200} silhouette={!caught} ghost={caught ? drop?.name : '???'} />
-      <h1 className="font-poster text-[48px] uppercase leading-none">{caught ? drop?.name : 'Event drop'}</h1>
+      <MonsterStage id={dropId} size={200} silhouette={!shown} mark={!shown && wearable ? '?' : undefined} ghost={shown ? drop?.name : wearable ? 'MONAD' : '???'} />
+      <h1 className="font-poster text-[48px] uppercase leading-none">{shown ? drop?.name : 'Event drop'}</h1>
       <p className="font-sans text-[15px] font-bold text-text-secondary max-w-xs">
         {wearable
-          ? `Check in to claim the ${drop?.name}, an event-only wearable for your avatar. Only ${drop?.maxSupply} exist, and you can trade it.`
-          : `Check in to catch ${drop?.name ?? 'the event Socemon'}. Only ${drop?.maxSupply} exist, and it is the only tradeable Socemon.`}
+          ? `Check in to claim ${shown ? `the ${drop?.name}` : 'a mystery wearable'}, an event-only piece for your avatar. Only ${drop?.maxSupply} exist, and you can trade it.`
+          : `Check in to catch ${shown ? (drop?.name ?? 'the event Socemon') : 'a mystery Socemon'}. Only ${drop?.maxSupply} exist, and it is the only tradeable Socemon.`}
       </p>
     </>
   )

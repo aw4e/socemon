@@ -44,6 +44,9 @@ export function currentEvent(env: Record<string, string | undefined> = process.e
     name: env.EVENT_NAME || 'Monad Blitz',
     dropId: Number(env.EVENT_DROP_ID || 20),
     live: startsAt ? isEventLive({ startsAt, endsAt }, now) : true,
+    /* ISO times for the poster; null when unset or not a real date */
+    startsAt: startsAt && !Number.isNaN(startsAt.getTime()) ? startsAt.toISOString() : null,
+    endsAt: endsAt && !Number.isNaN(endsAt.getTime()) ? endsAt.toISOString() : null,
   }
 }
 

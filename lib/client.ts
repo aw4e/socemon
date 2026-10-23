@@ -23,6 +23,14 @@ export async function post<T = unknown>(path: string, body: unknown): Promise<T>
   return data as T
 }
 
+/** True when the page was opened with `?preview=hidden`: the event drop is drawn as a stranger sees it before the event day, even if
+    you already hold it. Looks only; nothing is read from or written to the chain. Handy for the admin wallet that was granted every item. */
+export function usePreviewHidden(): boolean {
+  const [hidden, setHidden] = useState(false)
+  useEffect(() => setHidden(new URLSearchParams(window.location.search).get('preview') === 'hidden'), [])
+  return hidden
+}
+
 /** The wallet AppKit has connected and the wallet the server session belongs to; `user` is set only when they match. */
 export function useSession() {
   const { address: wallet } = useConnection()

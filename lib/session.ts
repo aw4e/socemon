@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import { SignJWT, jwtVerify } from 'jose'
-import { isHost } from '@/lib/checkin'
+import { isHostWallet } from '@/lib/event'
 
 /* Stateless sessions: signed cookies instead of a session table. The audience keeps a ticket or a nonce from passing as a session. */
 
@@ -58,5 +58,5 @@ export async function canOpenWall(sessionCookie: string | undefined, key: string
     const want = Buffer.from(wallKey)
     if (got.length === want.length && timingSafeEqual(got, want)) return true
   }
-  return isHost(await readToken(sessionSecret(), 'session', sessionCookie))
+  return isHostWallet(await readToken(sessionSecret(), 'session', sessionCookie))
 }
