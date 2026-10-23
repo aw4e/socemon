@@ -45,7 +45,8 @@ contract Deploy is Script {
             list[i] = Socemon.ItemInit({
                 id: vm.parseJsonUint(json, string.concat(p, ".id")),
                 slot: uint8(vm.parseJsonUint(json, string.concat(p, ".slot"))),
-                maxSupply: uint32(vm.parseJsonUint(json, string.concat(p, ".maxSupply")))
+                maxSupply: uint32(vm.parseJsonUint(json, string.concat(p, ".maxSupply"))),
+                drop: vm.keyExistsJson(json, string.concat(p, ".drop")) && vm.parseJsonBool(json, string.concat(p, ".drop"))
             });
         }
     }

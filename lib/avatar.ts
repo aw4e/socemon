@@ -17,6 +17,8 @@ export interface Wearable {
   slot: number
   tier: SocemonTier
   maxSupply: number
+  /** Event drop from check-in instead of a blind box. */
+  drop?: boolean
 }
 
 export const WEARABLES = catalog as Wearable[]
@@ -79,6 +81,18 @@ const ART: Record<number, string> = {
     <g stroke="${TEAL}" stroke-width="2.5" fill="none" filter="url(#glow)">
       <path d="M200 170 V254 M166 176 L184 196 V246 M234 176 L216 196 V246 M136 214 H154 M246 214 H264 M182 162 H218"/></g>`,
 
+  // Monad Blitz Jogja Vol. 2 event drop: the poster's deep purple, its iridescent swoosh and the BLITZ lightning bolt.
+  190: `<rect x="130" y="162" width="30" height="84" rx="12" fill="url(#blitz)" ${line}/>
+    <rect x="240" y="162" width="30" height="84" rx="12" fill="url(#blitz)" ${line}/>
+    <path d="M138 170 V238 M262 170 V238" stroke="url(#iris)" stroke-width="5" stroke-linecap="round"/>
+    <path d="M156 160 H244 V256 H156 Z" fill="url(#blitz)" ${line}/>
+    <path d="M157 200 C186 206 214 232 243 236 V252 C212 248 184 222 157 216 Z" fill="url(#iris)"/>
+    <path d="M176 152 H224 L218 170 H182 Z" fill="#120D33" ${line}/>
+    <path d="M211 172 L190 210 H203 L193 240 L218 198 H205 Z" fill="#FFF" stroke="#120D33" stroke-width="2" stroke-linejoin="round"/>
+    <rect x="167" y="176" width="13" height="13" rx="4" transform="rotate(45 173.5 182.5)" fill="none" stroke="#FFF" stroke-width="2.5"/>
+    <text x="224" y="186" font-family="Arial Black, Arial, sans-serif" font-size="9" font-weight="900" fill="#FFF">VOL.2</text>
+    <path d="M156 160 H244 V256 H156 Z" fill="none" ${line}/>`,
+
   // ---- hair ----
   140: `<path d="M140 98 L136 62 L154 70 L158 40 L178 58 L194 30 L208 56 L228 34 L236 62 L260 50 L262 98 C250 82 230 74 200 74 C170 74 152 82 140 98 Z" fill="#4A3426" ${line}/>`,
   141: `<path d="M136 146 C128 82 150 44 200 44 C250 44 272 82 264 146 L248 146 C250 114 242 90 226 80 C210 92 178 94 160 82 C152 98 150 122 152 146 Z" fill="#1E1B2E" ${line}/>
@@ -127,6 +141,8 @@ const DEFS = `<defs>
   <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F7FB"/><stop offset=".5" stop-color="#A9B1C1"/><stop offset="1" stop-color="#E2E7EF"/></linearGradient>
   <linearGradient id="mohawk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#836EF9"/><stop offset="1" stop-color="#FF3DA5"/></linearGradient>
   <linearGradient id="visor" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0E6C74"/><stop offset=".5" stop-color="${TEAL}"/><stop offset="1" stop-color="#0E6C74"/></linearGradient>
+  <linearGradient id="blitz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A3AD0"/><stop offset=".55" stop-color="#2A1F86"/><stop offset="1" stop-color="#120D33"/></linearGradient>
+  <linearGradient id="iris" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#836EF9"/><stop offset=".5" stop-color="#5EC8FF"/><stop offset="1" stop-color="#FF8AD8"/></linearGradient>
   <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>`
 

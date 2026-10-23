@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { colorOf, imageFor, speciesById } from '@/lib/socemon'
+import { colorOf, imageFor, isDropWearable, speciesById } from '@/lib/socemon'
 import { cn } from '@/lib/utils'
 
 /* A Socemon portrait. `silhouette` gives the Socédex "not caught yet" look with a CSS filter (needs the transparent PNGs).
@@ -40,7 +40,7 @@ export function MonsterImage({ id, size = 96, silhouette = false, className }: {
       height={size}
       draggable={false}
       onError={() => setBroken(true)}
-      className={cn('object-contain select-none', silhouette && 'brightness-0 opacity-20', className)}
+      className={cn('object-contain select-none', isDropWearable(id) && 'rounded-[22%]', silhouette && 'brightness-0 opacity-20', className)}
     />
   )
 }

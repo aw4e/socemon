@@ -3,6 +3,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { createSiweMessage } from 'viem/siwe'
 import { WEARABLES, renderAvatar } from '../lib/avatar'
 import { CHECKIN_EVENT, checkinToken } from '../lib/checkin'
+import { speciesById } from '../lib/socemon'
 
 /* The whole server path on Monad testnet with two throwaway wallets. It spends the minter's MON (about ten
    transactions), so it only runs on demand: npm run test:flow */
@@ -72,5 +73,5 @@ test('two trainers meet, hatch and check in onchain', async ({ playwright, baseU
 
   const wall = await ok(A.get(`/api/wall?key=${process.env.WALL_KEY}`))
   expect(wall.dropped).toBeGreaterThan(0)
-  expect(wall.feed.map((f: { text: string }) => f.text)).toContain('Flow B caught Blitzmon')
+  expect(wall.feed.map((f: { text: string }) => f.text)).toContain(`Flow B caught ${speciesById(Number(process.env.EVENT_DROP_ID || 20))?.name}`)
 })

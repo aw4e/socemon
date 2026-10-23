@@ -39,10 +39,12 @@ contract Socemon is ERC1155, AccessControl {
     }
 
     /// Slots: 0 skin, 1 bottom, 2 top, 3 outer, 4 hair, 5 head, 6 eyewear, 7 hand, 8 back.
+    /// `drop` wearables stay out of blind boxes: they are event drops, minted once per trainer by mintDrop.
     struct ItemInit {
         uint256 id;
         uint8 slot;
         uint32 maxSupply;
+        bool drop;
     }
 
     struct SpeciesInit {
@@ -72,6 +74,7 @@ contract Socemon is ERC1155, AccessControl {
     mapping(address => address[]) private _connections;
     mapping(address => uint16[6]) private _eggs;
     mapping(uint256 => uint8) public slotOf;
+    mapping(uint256 => bool) public isWearable;
     mapping(address => uint16) public boxes;
     mapping(address => uint256[9]) private _equipped;
     string private _baseUri;
@@ -127,9 +130,10 @@ contract Socemon is ERC1155, AccessControl {
             ItemInit calldata it = list[i];
             if (it.id == STARTER_ID || it.id >= AVATAR_FLAG || species[it.id].exists) revert InvalidSpecies();
             if (it.slot >= SLOTS) revert InvalidSlot();
-            species[it.id] = Species(POOL_ITEM, it.maxSupply, 0, true, true);
+            species[it.id] = Species(it.drop ? POOL_EVENT : POOL_ITEM, it.maxSupply, 0, true, true);
             slotOf[it.id] = it.slot;
-            _pools[POOL_ITEM].push(it.id);
+            isWearable[it.id] = true;
+            if (!it.drop) _pools[POOL_ITEM].push(it.id);
         }
     }
 
@@ -220,7 +224,7 @@ contract Socemon is ERC1155, AccessControl {
     function equip(address user, uint8 slot, uint256 id) external onlyRole(MINTER_ROLE) {
         if (slot >= SLOTS) revert InvalidSlot();
         if (id != 0) {
-            if (species[id].pool != POOL_ITEM || !species[id].exists || slotOf[id] != slot) revert InvalidSlot();
+            if (!isWearable[id] || slotOf[id] != slot) revert InvalidSlot();
             if (balanceOf(user, id) == 0) revert NotOwned();
         }
         _equipped[user][slot] = id;
@@ -229,7 +233,7 @@ contract Socemon is ERC1155, AccessControl {
 
     /// The partner is the monster that walks next to the avatar as its pet.
     function setPartner(address user, uint256 id) external onlyRole(MINTER_ROLE) {
-        if (species[id].pool == POOL_ITEM || id >= AVATAR_FLAG) revert InvalidSpecies();
+        if (isWearable[id] || id >= AVATAR_FLAG) revert InvalidSpecies();
         if (balanceOf(user, id) == 0) revert NotOwned();
         _profiles[user].partner = id;
         emit PartnerSet(user, id);
@@ -296,7 +300,7 @@ contract Socemon is ERC1155, AccessControl {
         if (from == address(0)) return;
         for (uint256 i; i < ids.length; i++) {
             uint256 id = ids[i];
-            if (species[id].pool != POOL_ITEM || balanceOf(from, id) > 0) continue;
+            if (!isWearable[id] || balanceOf(from, id) > 0) continue;
             uint8 slot = slotOf[id];
             if (_equipped[from][slot] == id) {
                 delete _equipped[from][slot];

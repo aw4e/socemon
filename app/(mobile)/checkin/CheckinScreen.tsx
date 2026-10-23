@@ -7,13 +7,14 @@ import { MonsterStage } from '@/components/socemon/MonsterStage'
 import { Reveal, useCatch } from '@/components/socemon/Reveal'
 import { Button } from '@/components/ui/Button'
 import { post, type Catch } from '@/lib/client'
-import { speciesById } from '@/lib/socemon'
+import { isDropWearable, speciesById } from '@/lib/socemon'
 
 /* Where the Event Wall QR lands once the ticket cookie is set: onboarding if needed, then the drop. */
 export function CheckinScreen({ eventName, dropId, expired }: { eventName: string; dropId: number; expired: boolean }) {
   const reveal = useCatch()
   const [caught, setCaught] = useState(false)
   const drop = speciesById(dropId)
+  const wearable = isDropWearable(dropId)
 
   const teaser = (
     <>
@@ -22,7 +23,9 @@ export function CheckinScreen({ eventName, dropId, expired }: { eventName: strin
       <MonsterStage id={dropId} size={200} silhouette={!caught} ghost={caught ? drop?.name : '???'} />
       <h1 className="font-poster text-[48px] uppercase leading-none">{caught ? drop?.name : 'Event drop'}</h1>
       <p className="font-sans text-[15px] font-bold text-text-secondary max-w-xs">
-        Check in to catch {drop?.name ?? 'the event Socemon'}. Only {drop?.maxSupply} exist, and it is the only tradeable Socemon.
+        {wearable
+          ? `Check in to claim the ${drop?.name}, an event-only wearable for your avatar. Only ${drop?.maxSupply} exist, and you can trade it.`
+          : `Check in to catch ${drop?.name ?? 'the event Socemon'}. Only ${drop?.maxSupply} exist, and it is the only tradeable Socemon.`}
       </p>
     </>
   )
@@ -47,9 +50,11 @@ export function CheckinScreen({ eventName, dropId, expired }: { eventName: strin
           <div className="flex flex-col items-center text-center gap-4 py-10">
             {teaser}
             {caught ? (
-              <Link href="/app/dex" className="font-sans text-[14px] font-extrabold uppercase tracking-[0.06em] text-text-accent">See it in your Socédex</Link>
+              <Link href={wearable ? '/app/wardrobe' : '/app/dex'} className="font-sans text-[14px] font-extrabold uppercase tracking-[0.06em] text-text-accent">
+                {wearable ? 'Wear it in your Wardrobe' : 'See it in your Socédex'}
+              </Link>
             ) : (
-              <Button size="lg" fullWidth loading={reveal.state?.phase === 'pending'} onClick={catchDrop}>Catch it</Button>
+              <Button size="lg" fullWidth loading={reveal.state?.phase === 'pending'} onClick={catchDrop}>{wearable ? 'Claim it' : 'Catch it'}</Button>
             )}
           </div>
         )}

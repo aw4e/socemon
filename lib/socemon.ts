@@ -1,4 +1,5 @@
 import catalog from '@/contracts/socemon.json'
+import wearables from '@/contracts/wearables.json'
 
 /* Species data lives in contracts/socemon.json so the deploy script and the app can never disagree on supply. */
 
@@ -43,13 +44,20 @@ export function typeName(pool: number): string {
   return ROLES.find((r) => r.role === pool)?.type ?? POOL_NAMES[pool] ?? 'Unknown'
 }
 
+/** Event-drop wearables (check-in only) act as event species, so every drop screen handles them like Blitzmon. */
+const DROP_WEARABLES: SocemonSpecies[] = (wearables as { id: number; name: string; tier: SocemonTier; maxSupply: number; drop?: boolean }[])
+  .filter((w) => w.drop)
+  .map((w) => ({ id: w.id, name: w.name, pool: POOL.event, tier: w.tier, maxSupply: w.maxSupply, transferable: true }))
+
+export const isDropWearable = (id: number) => DROP_WEARABLES.some((w) => w.id === id)
+
 export function speciesById(id: number): SocemonSpecies | undefined {
-  return id === STARTER_ID ? STARTER : SPECIES.find((s) => s.id === id)
+  return id === STARTER_ID ? STARTER : (SPECIES.find((s) => s.id === id) ?? DROP_WEARABLES.find((w) => w.id === id))
 }
 
 export const speciesInPool = (pool: number) => SPECIES.filter((s) => s.pool === pool)
 
-export const imageFor = (id: number) => `/socemon/${id}.png`
+export const imageFor = (id: number) => (isDropWearable(id) ? `/api/avatar/${id}` : `/socemon/${id}.png`)
 
 /** How many of the five role types a trainer has caught at least one species of (Nexmon needs all five). */
 export const typesCaught = (owned: Set<number>) =>

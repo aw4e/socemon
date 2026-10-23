@@ -4,12 +4,13 @@ import { useReadContracts } from 'wagmi'
 import { MonsterStage } from '@/components/socemon/MonsterStage'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
 import { useUser } from '@/lib/client'
-import { MONAD_PURPLE, speciesById } from '@/lib/socemon'
+import Link from 'next/link'
+import { MONAD_PURPLE, isDropWearable, speciesById } from '@/lib/socemon'
 
 const STEPS = [
   'Find the Event Wall on the projector.',
   'Scan its code with the Scan button. It changes every 30 seconds, so you have to be in the room.',
-  'Tap Catch. The drop is yours, and your attendance is onchain.',
+  'Tap the button. The drop is yours, and your attendance is onchain.',
 ]
 
 /* The event tab as a drop poster: who the drop is (a silhouette until you catch it), how many are left, and how to check in. */
@@ -61,7 +62,11 @@ export function EventScreen({ name, dropId, live }: { name: string; dropId: numb
 
       {claimed ? (
         <p className="mt-6 font-sans text-[16px] font-bold text-text-secondary">
-          You checked in. {drop?.name} is in your Socédex, and it is the one Socemon you can trade.
+          {isDropWearable(dropId) ? (
+            <>You checked in. The {drop?.name} is yours to trade or <Link href="/app/wardrobe" className="text-text-accent underline">wear in your Wardrobe</Link>.</>
+          ) : (
+            <>You checked in. {drop?.name} is in your Socédex, and it is the one Socemon you can trade.</>
+          )}
         </p>
       ) : (
         <ol className="mt-7">

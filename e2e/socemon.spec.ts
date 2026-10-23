@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
-import { POOL, ROLES, SPECIES, TYPE_COLOR, colorOf, speciesById, speciesInPool, typeName, typesCaught } from '../lib/socemon'
+import { POOL, ROLES, SPECIES, TYPE_COLOR, colorOf, imageFor, speciesById, speciesInPool, typeName, typesCaught } from '../lib/socemon'
 import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
 import { SOCEMON_ABI } from '../lib/abi'
 import { SLOT_NAMES, WEARABLES, renderAvatar, renderWearable } from '../lib/avatar'
@@ -56,6 +56,8 @@ test.describe('wearables', () => {
       expect(renderWearable(w.id), w.name).not.toBe(bare)
     }
     expect(renderWearable(999)).toBeNull()
+    expect(speciesById(190)).toMatchObject({ name: 'Blitz Jacket', pool: POOL.event, maxSupply: 200, transferable: true })
+    expect(imageFor(190)).toBe('/api/avatar/190')
   })
 
   test('a hat or hood hides the hair under it', () => {

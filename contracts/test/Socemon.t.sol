@@ -378,7 +378,7 @@ contract SocemonTest is Test {
 
     function _item(uint256 id, uint8 slot, uint32 maxSupply) internal {
         Socemon.ItemInit[] memory list = new Socemon.ItemInit[](1);
-        list[0] = Socemon.ItemInit(id, slot, maxSupply);
+        list[0] = Socemon.ItemInit(id, slot, maxSupply, false);
         s.addItems(list);
     }
 
@@ -462,11 +462,40 @@ contract SocemonTest is Test {
     function test_wearablesJsonSeedsEveryItem() public {
         Socemon.ItemInit[] memory list = new Deploy().loadItems();
         s.addItems(list);
-        assertEq(s.poolSpecies(8).length, list.length);
         assertEq(s.slotOf(181), 8);
+        assertEq(s.poolSpecies(8).length, list.length - 1);
+        (uint8 dropPool, uint32 dropSupply, , , ) = s.species(190);
+        assertEq(dropPool, 6);
+        assertEq(dropSupply, 200);
         (uint8 pool, uint32 maxSupply, , bool transferable, ) = s.species(181);
         assertEq(pool, 8);
         assertEq(maxSupply, 10);
         assertTrue(transferable);
+    }
+
+    function test_dropWearableIsCheckInOnlyAndWearable() public {
+        Socemon.ItemInit[] memory list = new Socemon.ItemInit[](2);
+        list[0] = Socemon.ItemInit(100, 0, 5, false);
+        list[1] = Socemon.ItemInit(190, 3, 2, true);
+        s.addItems(list);
+        assertEq(s.poolSpecies(8).length, 1);
+        _register(alice, 1);
+        _register(bob, 2);
+        _register(carol, 3);
+        vm.startPrank(minter);
+        s.mintDrop(alice, 190);
+        vm.expectRevert(Socemon.AlreadyHasDrop.selector);
+        s.mintDrop(alice, 190);
+        s.mintDrop(bob, 190);
+        vm.expectRevert(Socemon.SoldOut.selector);
+        s.mintDrop(carol, 190);
+        s.equip(alice, 3, 190);
+        vm.expectRevert(Socemon.InvalidSpecies.selector);
+        s.setPartner(alice, 190);
+        vm.stopPrank();
+        assertEq(s.equippedOf(alice)[3], 190);
+        vm.prank(alice);
+        s.safeTransferFrom(alice, carol, 190, 1, "");
+        assertEq(s.equippedOf(alice)[3], 0);
     }
 }
