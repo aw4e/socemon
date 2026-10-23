@@ -27,6 +27,13 @@ export function Scanner({ onScan }: { onScan: (text: string) => boolean }) {
       }, {
         preferredCamera: 'environment',
         returnDetailedScanResult: true,
+        maxScansPerSecond: 12,
+        /* scan the whole frame, not the library's centre two-thirds: people hold the phone close until the code fills
+           the screen, and a code bigger than that box never decodes. Downscaled so big frames stay fast. */
+        calculateScanRegion: (v) => {
+          const scale = Math.min(1, 800 / Math.max(v.videoWidth, v.videoHeight))
+          return { x: 0, y: 0, width: v.videoWidth, height: v.videoHeight, downScaledWidth: Math.round(v.videoWidth * scale), downScaledHeight: Math.round(v.videoHeight * scale) }
+        },
         onDecodeError: () => {},
       })
       scanner.start().catch((err: unknown) => {

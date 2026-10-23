@@ -11,6 +11,8 @@ const csp = [
   "font-src 'self' data: https://fonts.gstatic.com https://fonts.reown.com https://fonts.walletconnect.com",
   "connect-src 'self' https: wss:",
   "frame-src 'self' https:",
+  /* qr-scanner decodes in a blob worker wherever the browser has no BarcodeDetector (iOS Safari) */
+  "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",

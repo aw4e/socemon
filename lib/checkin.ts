@@ -53,7 +53,16 @@ export function isHost(address: string | null | undefined, env: Record<string, s
   return (env.EVENT_HOSTS ?? '').split(',').some((h) => h.trim().toLowerCase() === address.toLowerCase())
 }
 
-/** "My code" QR tokens reuse the check-in rotation, scoped to the trainer who shows the code. */
-export const meetCode = (owner: string, now: number) => checkinToken(checkinSecret(), `meet:${owner.toLowerCase()}`, now)
-export const verifyMeetCode = (owner: string, code: unknown, now: number) =>
-  verifyCheckinToken(checkinSecret(), `meet:${owner.toLowerCase()}`, code, now)
+/* "My code" QR tokens: scoped to the trainer who shows them, rotating every 5 minutes (valid for 5 to 10). That is long
+   enough to sign up from a phone camera scan, short enough that a posted screenshot goes stale. 22 chars (132 bits)
+   keep the QR sparse and quick to read. */
+export const MEET_WINDOW_MS = 5 * 60_000
+const meetToken = (owner: string, window: number) =>
+  createHmac('sha256', checkinSecret()).update(`meet:${owner.toLowerCase()}:${window}`).digest('base64url').slice(0, 22)
+export const meetCode = (owner: string, now: number) => meetToken(owner, Math.floor(now / MEET_WINDOW_MS))
+export function verifyMeetCode(owner: string, code: unknown, now: number): boolean {
+  if (typeof code !== 'string' || code.length !== 22) return false
+  const got = Buffer.from(code)
+  const w = Math.floor(now / MEET_WINDOW_MS)
+  return [w, w - 1].some((x) => timingSafeEqual(got, Buffer.from(meetToken(owner, x))))
+}

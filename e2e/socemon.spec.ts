@@ -5,7 +5,7 @@ import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
 import { SOCEMON_ABI } from '../lib/abi'
 import { SLOT_NAMES, WEARABLES, renderAvatar, renderWearable } from '../lib/avatar'
 import { boxResult, gasLimit, hatchResult } from '../lib/chain'
-import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, isHost, verifyCheckinToken } from '../lib/checkin'
+import { CHECKIN_WINDOW_MS, MEET_WINDOW_MS, checkinToken, currentEvent, isEventLive, isHost, meetCode, verifyCheckinToken, verifyMeetCode } from '../lib/checkin'
 import { errorFor } from '../lib/errors'
 import { perksFor, rushKitFor } from '../lib/game'
 import { parseScan } from '../lib/scan'
@@ -46,6 +46,18 @@ test.describe('socemon catalog', () => {
     expect(typesCaught(new Set([0, 16, 19, 20]))).toBe(0)
     expect(typesCaught(new Set([1, 2, 4, 15]))).toBe(3)
   })
+})
+
+test('My code QR codes last 5 to 10 minutes and only for their owner', () => {
+  process.env.CHECKIN_SECRET ??= 'test-secret'
+  const owner = '0xAbC0000000000000000000000000000000000001'
+  const t = 1_800_000_000_000
+  const code = meetCode(owner, t)
+  expect(code).toHaveLength(22)
+  expect(verifyMeetCode(owner.toLowerCase(), code, t + MEET_WINDOW_MS)).toBe(true)
+  expect(verifyMeetCode(owner, code, t + 2 * MEET_WINDOW_MS + 1)).toBe(false)
+  expect(verifyMeetCode('0x0000000000000000000000000000000000000002', code, t)).toBe(false)
+  expect(verifyMeetCode(owner, 'stale', t)).toBe(false)
 })
 
 test('only wallets in EVENT_HOSTS are hosts, any letter case', () => {

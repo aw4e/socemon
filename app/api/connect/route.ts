@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { parseEventLogs } from 'viem'
-import { HttpError, address, handle, readBody, requireUser } from '@/lib/api'
+import { address, handle, readBody, requireUser } from '@/lib/api'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
 import { publicClient, relay } from '@/lib/chain'
 import { verifyMeetCode } from '@/lib/checkin'
@@ -12,8 +12,8 @@ export function POST(req: NextRequest) {
     const user = await requireUser(req)
     const body = await readBody(req)
     const to = address(body.to, 'address')
-    const scanned = body.code !== undefined
-    if (scanned && !verifyMeetCode(to, body.code, Date.now())) throw new HttpError('This code expired. Ask them to show it again.', 410)
+    /* a stale code (an old screenshot, or a long sign-up) falls back to a normal request instead of a dead end */
+    const scanned = body.code !== undefined && verifyMeetCode(to, body.code, Date.now())
 
     if (scanned) {
       /* an earlier link request from you is already waiting, so only their approval is left */

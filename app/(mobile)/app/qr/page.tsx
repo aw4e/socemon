@@ -77,11 +77,13 @@ function ScanMode() {
     const to = scan.address
     setBusy(true)
     setHint('Connecting onchain…')
-    post('/api/connect', { to, code: scan.code })
-      .then(() => {
-        setHint('')
-        setFriend(to)
+    post<{ status: string }>('/api/connect', { to, code: scan.code })
+      .then(({ status }) => {
         trainer.refetch()
+        if (status === 'connected') {
+          setHint('')
+          setFriend(to)
+        } else setHint('That code was old, so we sent them a request instead. They approve it on Home.')
       })
       .catch((err) => setHint(err instanceof Error ? err.message : 'Something went wrong'))
       .finally(() => setBusy(false))
@@ -130,7 +132,7 @@ function CodeMode() {
         const { code } = await (await fetch('/api/meet')).json()
         setQr(await QRCode.toDataURL(`${url}?c=${encodeURIComponent(code)}`, { margin: 1, width: 640 }))
       } catch {}
-      timer = setTimeout(refresh, 20_000)
+      timer = setTimeout(refresh, 4 * 60_000)
     }
     refresh()
     return () => clearTimeout(timer)
@@ -175,6 +177,9 @@ function CodeMode() {
       </div>
       <p className="font-sans text-[15px] font-bold text-text-secondary max-w-xs mt-6">
         A friend scans this in their Socemon app and you are connected right away. You both get an Egg and a blind box.
+      </p>
+      <p className="font-sans text-[12px] font-bold text-text-tertiary max-w-xs mt-2">
+        The code changes every few minutes, so a screenshot shared online stops working. Show it in person.
       </p>
       <div className="flex gap-3 mt-5">
         <Button variant="secondary" size="sm" onClick={copy}>
