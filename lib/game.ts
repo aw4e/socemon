@@ -67,5 +67,60 @@ export function perksFor(equipped: readonly number[], partner: number): Perks {
   return perks
 }
 
-export const hasPerk = (id: number) => id in WEARABLE_PERKS
-export const perkText = (id: number) => (WEARABLE_PERKS[id] ? describe(WEARABLE_PERKS[id]) : '')
+
+/* ---- Blitz Rush: wearables unlock moves, not just numbers ---- */
+
+export type AbilityId = 'boost' | 'fly' | 'slash'
+
+export interface Ability {
+  id: AbilityId
+  name: string
+  /** what it does, for the start screen */
+  text: string
+  /** seconds active */
+  duration: number
+  /** seconds before it can be used again */
+  cooldown: number
+  /** the wearable that grants it */
+  from: number
+}
+
+export const ABILITIES: Ability[] = [
+  { id: 'boost', name: 'Blitz Boost', text: 'Lightning speed, smash through barriers', duration: 2.5, cooldown: 9, from: 190 },
+  { id: 'fly', name: 'Fly', text: 'Soar over barriers', duration: 1.4, cooldown: 7, from: 181 },
+  { id: 'slash', name: 'Slash', text: 'Cut the next barrier in your lane', duration: 0.25, cooldown: 4, from: 171 },
+]
+
+export interface RushKit {
+  abilities: Ability[]
+  /** crashes the Hero Cape shrugs off */
+  shields: number
+  /** extra top speed, 0.1 is +10% */
+  topSpeed: number
+  sources: { name: string; text: string }[]
+}
+
+const TOP_SPEED: Record<number, number> = { 131: 0.08, 130: 0.04 } // Neon Jacket, Night Blazer
+const PET_SPEED: Record<SocemonTier, number> = { common: 0.02, rare: 0.04, epic: 0.06, legendary: 0.1, event: 0.06 }
+
+export function rushKitFor(equipped: readonly number[], partner: number): RushKit {
+  const worn = new Set(equipped)
+  const kit: RushKit = { abilities: ABILITIES.filter((a) => worn.has(a.from)), shields: 0, topSpeed: 0, sources: [] }
+  for (const a of kit.abilities) kit.sources.push({ name: wearableById(a.from)?.name ?? a.name, text: a.name })
+  if (worn.has(180)) {
+    kit.shields = 1
+    kit.sources.push({ name: 'Hero Cape', text: 'Shield' })
+  }
+  for (const id of worn) {
+    if (!TOP_SPEED[id]) continue
+    kit.topSpeed += TOP_SPEED[id]
+    kit.sources.push({ name: wearableById(id)?.name ?? `#${id}`, text: `+${TOP_SPEED[id] * 100}% top speed` })
+  }
+  const pet = partner === STARTER_ID ? undefined : speciesById(partner)
+  if (pet) {
+    kit.topSpeed += PET_SPEED[pet.tier]
+    kit.sources.push({ name: `${pet.name} (pet)`, text: `+${PET_SPEED[pet.tier] * 100}% top speed` })
+  }
+  kit.topSpeed = Math.round(kit.topSpeed * 100) / 100
+  return kit
+}

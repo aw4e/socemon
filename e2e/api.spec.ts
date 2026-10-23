@@ -53,7 +53,7 @@ test('sign-in refuses a nonce the server did not issue', async ({ request, baseU
 })
 
 test('every page renders and the landing leads into the app', async ({ request }) => {
-  const pages = ['/', '/app', '/app/game', '/app/game/flap', '/app/qr', '/app/event', '/app/me', '/app/friends', '/app/wardrobe', '/u/0x0000000000000000000000000000000000000001', '/checkin']
+  const pages = ['/', '/app', '/app/game', '/app/game/flap', '/app/game/rush', '/app/qr', '/app/event', '/app/me', '/app/friends', '/app/wardrobe', '/u/0x0000000000000000000000000000000000000001', '/checkin']
   for (const path of pages) expect((await request.get(path)).status(), path).toBe(200)
   const landing = await (await request.get('/')).text()
   expect(landing).toContain('Launch app')

@@ -6,7 +6,7 @@ import { PerkList } from '@/components/game/PerkList'
 import { PageHeader } from '@/components/PageHeader'
 import { renderAvatar } from '@/lib/avatar'
 import { useTrainer, useUser, useWardrobe } from '@/lib/client'
-import { perksFor } from '@/lib/game'
+import { ABILITIES, perksFor, rushKitFor } from '@/lib/game'
 
 /* The Game hub: every game here reads the same NFT perks, so what you hunt at events and in blind boxes makes you
    stronger in all of them. Event sponsors can bring their own game to the hub. */
@@ -17,6 +17,7 @@ export default function GameHub() {
   const partner = Number(trainer.profile?.partner ?? 0n)
   const gearKey = wardrobe.equipped.join(',')
   const perks = useMemo(() => perksFor(gearKey ? gearKey.split(',').map(Number) : [], partner), [gearKey, partner])
+  const kit = useMemo(() => rushKitFor(gearKey ? gearKey.split(',').map(Number) : [], partner), [gearKey, partner])
   const sprite = useMemo(() => renderAvatar(gearKey ? gearKey.split(',').map(Number) : [], undefined, true), [gearKey])
 
   return (
@@ -46,6 +47,32 @@ export default function GameHub() {
         </div>
         <span className="relative mt-1 inline-flex items-center gap-2 h-12 px-6 rounded-2xl bg-white text-[#1B1250] font-sans text-[14px] font-extrabold uppercase tracking-[0.05em] shadow-[0_4px_0_rgba(0,0,0,0.3)]">
           <Play className="w-4 h-4 fill-current" /> Play
+        </span>
+      </Link>
+
+      <Link
+        href="/app/game/rush"
+        className="grain relative block overflow-hidden rounded-[30px] p-5 mt-4 text-white active:scale-[0.98] transition-transform"
+        style={{ background: 'linear-gradient(165deg, #0E6C74 0%, #16113A 55%, #0B0820 100%)' }}
+      >
+        <p className="relative font-sans text-[11px] font-black uppercase tracking-[0.14em] text-white/70">Race · NFTs unlock moves</p>
+        <h2 className="relative font-poster text-[52px] uppercase leading-[0.9] mt-1">Blitz<br />Rush</h2>
+        <p className="relative font-sans text-[13px] font-bold text-white/80 mt-2 max-w-[280px]">
+          Beat three rivals to the line. Rex is too fast to catch on skill alone.
+        </p>
+        <div className="relative flex flex-wrap gap-2 mt-3">
+          {ABILITIES.map((a) => {
+            const on = kit.abilities.includes(a)
+            return (
+              <span key={a.id} className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full font-sans text-[12px] font-black ${on ? 'bg-white text-[#0B0820]' : 'bg-white/10 text-white/50'}`}>
+                {on ? { boost: '⚡', fly: '🪽', slash: '🗡️' }[a.id] : '🔒'} {a.name}
+              </span>
+            )
+          })}
+          {kit.shields > 0 && <span className="inline-flex items-center h-8 px-3 rounded-full bg-white text-[#0B0820] font-sans text-[12px] font-black">🛡️ Shield</span>}
+        </div>
+        <span className="relative mt-4 inline-flex items-center gap-2 h-12 px-6 rounded-2xl bg-white text-[#0B0820] font-sans text-[14px] font-extrabold uppercase tracking-[0.05em] shadow-[0_4px_0_rgba(0,0,0,0.3)]">
+          <Play className="w-4 h-4 fill-current" /> Race
         </span>
       </Link>
 

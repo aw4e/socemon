@@ -7,7 +7,7 @@ import { SLOT_NAMES, WEARABLES, renderAvatar, renderWearable } from '../lib/avat
 import { boxResult, gasLimit, hatchResult } from '../lib/chain'
 import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, isHost, verifyCheckinToken } from '../lib/checkin'
 import { errorFor } from '../lib/errors'
-import { perksFor } from '../lib/game'
+import { perksFor, rushKitFor } from '../lib/game'
 import { parseScan } from '../lib/scan'
 import { readToken, signToken } from '../lib/session'
 
@@ -64,6 +64,15 @@ test('game perks come from worn NFTs and the pet', () => {
   expect(p).toMatchObject({ lives: 4, gap: 25, speed: 0.85, multiplier: 2.25 })
   expect(p.sources.map((s) => s.name)).toEqual(['Blitz Jacket', 'Cyber Visor', 'Plasma Blade', 'Circuit Wings', 'Pitchfox (pet)'])
   expect(perksFor([0, 110, 120, 0, 140], 0).sources).toEqual([]) // style-only wearables
+})
+
+test('Blitz Rush moves come from worn wearables', () => {
+  expect(rushKitFor([0, 0, 0, 0, 0, 0, 0, 0, 0], 0)).toEqual({ abilities: [], shields: 0, topSpeed: 0, sources: [] })
+  const kit = rushKitFor([0, 0, 0, 190, 0, 0, 0, 171, 180], 5)
+  expect(kit.abilities.map((a) => a.id)).toEqual(['boost', 'slash'])
+  expect(kit).toMatchObject({ shields: 1, topSpeed: 0.04 })
+  expect(rushKitFor([0, 0, 0, 131, 0, 0, 0, 0, 181], 0)).toMatchObject({ topSpeed: 0.08, shields: 0 })
+  expect(rushKitFor([0, 0, 0, 131, 0, 0, 0, 0, 181], 0).abilities.map((a) => a.id)).toEqual(['fly'])
 })
 
 test.describe('wearables', () => {
