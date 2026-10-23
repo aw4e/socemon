@@ -1,13 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { getAddress, type Hex } from 'viem'
 import { parseSiweMessage } from 'viem/siwe'
-import { HttpError, handle, readBody } from '@/lib/api'
+import { HttpError, handle, limit, readBody } from '@/lib/api'
 import { publicClient } from '@/lib/chain'
 import { NONCE_COOKIE, SESSION_COOKIE, SESSION_TTL_S, cookieOptions, readToken, sessionSecret, signToken } from '@/lib/session'
 
 /** Checks a SIWE signature against the nonce cookie and this host, then starts a 7-day session. */
 export function POST(req: NextRequest) {
   return handle(async () => {
+    limit(req, 'verify', 60, 60_000)
     const { message, signature } = await readBody(req)
     if (typeof message !== 'string' || message.length > 2000 || typeof signature !== 'string' || !/^0x[0-9a-fA-F]+$/.test(signature)) {
       throw new HttpError('Invalid sign-in', 400)

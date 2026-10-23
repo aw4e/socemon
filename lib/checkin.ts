@@ -8,7 +8,7 @@ const DEFAULT_LENGTH_MS = 12 * 3600_000
 
 export function checkinSecret(): string {
   const secret = process.env.CHECKIN_SECRET
-  if (!secret) throw new Error('CHECKIN_SECRET is not set')
+  if (!secret || secret.length < 32) throw new Error('CHECKIN_SECRET must be at least 32 characters')
   return secret
 }
 
@@ -64,5 +64,9 @@ export function verifyMeetCode(owner: string, code: unknown, now: number): boole
   if (typeof code !== 'string' || code.length !== 22) return false
   const got = Buffer.from(code)
   const w = Math.floor(now / MEET_WINDOW_MS)
-  return [w, w - 1].some((x) => timingSafeEqual(got, Buffer.from(meetToken(owner, x))))
+  /* length is checked on the bytes: 22 multi-byte characters pass code.length but make timingSafeEqual throw */
+  return [w, w - 1].some((x) => {
+    const want = Buffer.from(meetToken(owner, x))
+    return got.length === want.length && timingSafeEqual(got, want)
+  })
 }

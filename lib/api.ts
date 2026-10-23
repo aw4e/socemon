@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { BaseError, getAddress, isAddress, type Address } from 'viem'
 import { revertName } from '@/lib/chain'
 import { errorFor } from '@/lib/errors'
+import { underLimit } from '@/lib/ratelimit'
 import { SESSION_COOKIE, readToken, sessionSecret } from '@/lib/session'
 
 export class HttpError extends Error {
@@ -15,6 +16,15 @@ export async function requireUser(req: NextRequest): Promise<Address> {
   const sub = await readToken(sessionSecret(), 'session', req.cookies.get(SESSION_COOKIE)?.value)
   if (!sub || !isAddress(sub)) throw new HttpError('Sign in first', 401)
   return getAddress(sub)
+}
+
+/** The caller's IP from the platform's forwarding header (set by Vercel's edge; spoofable behind a bare server). */
+export const clientIp = (req: Request) => req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+
+/** Counts one hit for `bucket` and the caller; throws a 429 once the window is full. Limits are generous because a venue
+    puts a whole crowd behind one Wi-Fi IP. */
+export function limit(req: Request, bucket: string, max: number, windowMs: number, who = clientIp(req)): void {
+  if (!underLimit(`${bucket}:${who}`, max, windowMs)) throw new HttpError('Too many tries, wait a minute', 429)
 }
 
 export async function readBody(req: Request): Promise<Record<string, unknown>> {

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { parseEventLogs } from 'viem'
-import { address, handle, readBody, requireUser } from '@/lib/api'
+import { address, handle, limit, readBody, requireUser } from '@/lib/api'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
 import { publicClient, relay } from '@/lib/chain'
 import { verifyMeetCode } from '@/lib/checkin'
@@ -10,6 +10,7 @@ import { verifyMeetCode } from '@/lib/checkin'
 export function POST(req: NextRequest) {
   return handle(async () => {
     const user = await requireUser(req)
+    limit(req, 'connect', 20, 60_000, user)
     const body = await readBody(req)
     const to = address(body.to, 'address')
     /* a stale code (an old screenshot, or a long sign-up) falls back to a normal request instead of a dead end */

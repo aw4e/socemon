@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'node:crypto'
 import { SignJWT, jwtVerify } from 'jose'
 import { isHost } from '@/lib/checkin'
 
@@ -51,6 +52,11 @@ export const cookieOptions = (maxAge: number) => ({
 
 /** The wall opens for a host's session, or for the WALL_KEY link (a fallback for a projector with no wallet). */
 export async function canOpenWall(sessionCookie: string | undefined, key: string | null | undefined): Promise<boolean> {
-  if (process.env.WALL_KEY && key === process.env.WALL_KEY) return true
+  const wallKey = process.env.WALL_KEY
+  if (wallKey && key) {
+    const got = Buffer.from(key)
+    const want = Buffer.from(wallKey)
+    if (got.length === want.length && timingSafeEqual(got, want)) return true
+  }
   return isHost(await readToken(sessionSecret(), 'session', sessionCookie))
 }

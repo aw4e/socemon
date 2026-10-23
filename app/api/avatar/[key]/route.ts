@@ -2,6 +2,8 @@ import { isAddress, type Address } from 'viem'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
 import { renderAvatar, renderItem, renderWearable } from '@/lib/avatar'
 import { publicClient } from '@/lib/chain'
+import { clientIp } from '@/lib/api'
+import { underLimit } from '@/lib/ratelimit'
 import { imageFor } from '@/lib/socemon'
 
 const svg = (body: string, maxAge: number) =>
@@ -26,6 +28,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
     return body ? svg(body, 86400) : new Response('Unknown wearable', { status: 404 })
   }
   if (!isAddress(key)) return new Response('Not an address or wearable', { status: 400 })
+  /* the address form costs two RPC reads, the same RPC the relayer writes through */
+  if (!underLimit(`avatar:${clientIp(req)}`, 120, 60_000)) return new Response('Too many requests', { status: 429 })
 
   const address = socemonAddress()
   const [equipped, profile] = await Promise.all([

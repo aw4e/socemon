@@ -11,7 +11,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? new URL(req.url).origin
 
-  if (/^\d{70,78}$/.test(id) && BigInt(id) >= AVATAR_FLAG && BigInt(id) < AVATAR_FLAG << 1n) {
+  /* avatarOf(user) is AVATAR_FLAG | uint160(user), so anything past 160 bits above the flag is no avatar */
+  if (/^\d{70,78}$/.test(id) && BigInt(id) >= AVATAR_FLAG && BigInt(id) < AVATAR_FLAG + (1n << 160n)) {
     const owner = getAddress(toHex(BigInt(id) - AVATAR_FLAG, { size: 20 }))
     return NextResponse.json({
       name: `Trainer ${owner.slice(0, 6)}…${owner.slice(-4)}`,

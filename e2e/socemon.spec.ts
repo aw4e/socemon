@@ -5,6 +5,7 @@ import { encodeAbiParameters, encodeEventTopics, type Log } from 'viem'
 import { SOCEMON_ABI } from '../lib/abi'
 import { SLOT_NAMES, WEARABLES, renderAvatar, renderWearable } from '../lib/avatar'
 import { boxResult, gasLimit, hatchResult } from '../lib/chain'
+import { underLimit } from '../lib/ratelimit'
 import { CHECKIN_WINDOW_MS, MEET_WINDOW_MS, checkinToken, currentEvent, isEventLive, isHost, meetCode, verifyCheckinToken, verifyMeetCode } from '../lib/checkin'
 import { errorFor } from '../lib/errors'
 import { perksFor, rushKitFor } from '../lib/game'
@@ -49,7 +50,7 @@ test.describe('socemon catalog', () => {
 })
 
 test('My code QR codes last 5 to 10 minutes and only for their owner', () => {
-  process.env.CHECKIN_SECRET ??= 'test-secret'
+  process.env.CHECKIN_SECRET ??= 'test-secret-test-secret-test-secret'
   const owner = '0xAbC0000000000000000000000000000000000001'
   const t = 1_800_000_000_000
   const code = meetCode(owner, t)
@@ -58,6 +59,7 @@ test('My code QR codes last 5 to 10 minutes and only for their owner', () => {
   expect(verifyMeetCode(owner, code, t + 2 * MEET_WINDOW_MS + 1)).toBe(false)
   expect(verifyMeetCode('0x0000000000000000000000000000000000000002', code, t)).toBe(false)
   expect(verifyMeetCode(owner, 'stale', t)).toBe(false)
+  expect(verifyMeetCode(owner, 'é'.repeat(22), t)).toBe(false) // 22 characters, 44 bytes: must be false, not a throw
 })
 
 test('only wallets in EVENT_HOSTS are hosts, any letter case', () => {
@@ -252,4 +254,11 @@ test.describe('scanning', () => {
     const junk = ['', 'hello', `https://evil.example/u/${a}`, `${origin}/u/0x123`, `${origin}/api/checkin/ticket`, `${origin}/app`, 'javascript:alert(1)']
     for (const text of junk) expect(parseScan(text, origin), text).toBeNull()
   })
+})
+
+test('rate limiter lets max hits through per window, then resets', () => {
+  const t = 1_000_000
+  const hit = (now: number) => underLimit('rl-test', 3, 1000, now)
+  expect([hit(t), hit(t), hit(t), hit(t)]).toEqual([true, true, true, false])
+  expect(hit(t + 1000)).toBe(true)
 })
