@@ -1,34 +1,18 @@
 import Link from 'next/link'
-import { ArrowRight, Gamepad2, Ticket, Users } from 'lucide-react'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { HeroCarousel } from '@/components/landing/HeroCarousel'
+import { ScrambleIn, TiltText } from '@/components/landing/Motion'
+import { BLITZ_HERO, FlapScene, Loop, RushScene } from '@/components/landing/Scenes'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { MONAD_PURPLE, POOL, ROLES, TIER_COLOR, TYPE_COLOR, speciesById } from '@/lib/socemon'
 
 const REPO = 'https://github.com/riorblade/socemon'
 
-/* The flywheel: each side brings what the other two want. */
+/* The loop: each side brings what the other two want. */
 const ECOSYSTEM = [
-  {
-    Icon: Users,
-    color: TYPE_COLOR[POOL.echo],
-    who: 'Communities',
-    get: 'A full room, and attendance verified onchain.',
-    give: 'Host the event and put the check-in QR on the projector.',
-  },
-  {
-    Icon: Ticket,
-    color: MONAD_PURPLE,
-    who: 'Players',
-    get: 'Limited NFT skins and skills that make them stronger in games.',
-    give: 'Show up, meet people, check in. No gas, no tokens.',
-  },
-  {
-    Icon: Gamepad2,
-    color: TYPE_COLOR[POOL.gold],
-    who: 'Game sponsors',
-    get: 'New players who arrive already holding their items.',
-    give: 'Sponsor the event drop: a skin or skill that works in their game.',
-  },
+  { color: TYPE_COLOR[POOL.echo], who: 'Communities', get: 'A full room, attendance verified onchain.', give: 'The event, and the check-in QR on the projector.' },
+  { color: MONAD_PURPLE, who: 'Players', get: 'Limited NFT skins and skills that win games.', give: 'Showing up and meeting people. No gas, no tokens.' },
+  { color: TYPE_COLOR[POOL.gold], who: 'Game sponsors', get: 'New players already holding their items.', give: 'The event drop: a skin or skill for their game.' },
 ]
 
 const STEPS = [
@@ -42,8 +26,8 @@ const GAMES = [
   {
     href: '/app/game/rush',
     name: 'Blitz Rush',
+    Scene: RushScene,
     pitch: 'Race three rivals across three lanes. The fastest one is out of reach on skill alone.',
-    bg: 'linear-gradient(165deg, #0E6C74 0%, #16113A 60%, #0B0820 100%)',
     nft: [
       ['⚡ Blitz Jacket', 'Blitz Boost: lightning speed through barriers'],
       ['🪽 Circuit Wings', 'Fly over barriers'],
@@ -54,8 +38,8 @@ const GAMES = [
   {
     href: '/app/game/flap',
     name: 'Blitz Flap',
+    Scene: FlapScene,
     pitch: 'Tap to fly your own avatar through the pipes, your pet trailing behind.',
-    bg: 'linear-gradient(165deg, #4A3AD0 0%, #2A1F86 55%, #120D33 100%)',
     nft: [
       ['🪽 Wings and capes', 'Extra lives'],
       ['🕶️ Visors and glasses', 'A wider gap'],
@@ -76,26 +60,40 @@ export default function LandingPage() {
     <div className="bg-bg-base text-text-primary">
       <HeroCarousel />
 
-      <section className="mx-auto max-w-6xl px-5 py-24">
-        <p className="eyebrow">Why it exists</p>
-        <h2 className="font-poster uppercase leading-[0.92] mt-3" style={{ fontSize: 'clamp(44px, 7.5vw, 96px)' }}>
-          Events bring the people.<br /><span style={{ color: MONAD_PURPLE }}>Games give them a reason.</span>
-        </h2>
-        <p className="font-sans text-[17px] font-semibold text-text-secondary mt-5 max-w-2xl">
-          People come to an event for the NFT. They want the NFT because it makes them stronger in games. The game that
-          sponsored it gets new players. One loop, and everyone in it wins.
+      <section className="relative overflow-hidden py-28">
+        <p aria-hidden className="absolute left-1/2 top-10 -translate-x-1/2 font-poster uppercase leading-none whitespace-nowrap select-none bg-clip-text text-transparent opacity-[0.07]"
+          style={{ fontSize: 'clamp(140px, 30vw, 460px)', backgroundImage: 'linear-gradient(180deg, #fff, transparent)' }}>
+          Show up
         </p>
-        <div className="grid sm:grid-cols-3 gap-3 mt-10">
-          {ECOSYSTEM.map(({ Icon, color, who, get, give }) => (
-            <div key={who} className="rounded-[28px] bg-bg-surface border border-(--border-default) p-6">
-              <Icon className="w-8 h-8" style={{ color }} />
-              <p className="font-poster uppercase text-[34px] leading-none mt-4">{who}</p>
-              <p className="eyebrow mt-5">They get</p>
-              <p className="font-sans text-[16px] font-bold mt-1">{get}</p>
-              <p className="eyebrow mt-4">They bring</p>
-              <p className="font-sans text-[15px] font-semibold text-text-secondary mt-1">{give}</p>
+        <div className="relative mx-auto max-w-6xl px-5">
+          <p className="eyebrow">Why it exists</p>
+          <h2 className="font-poster uppercase leading-[0.9] mt-4" style={{ fontSize: 'clamp(46px, 8.4vw, 118px)' }}>
+            <ScrambleIn text="Events bring the people." className="block" />
+            <ScrambleIn text="Games give them a reason." className="block bg-clip-text text-transparent" delay={350}
+              style={{ backgroundImage: 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)' }} />
+          </h2>
+
+          <div className="grid lg:grid-cols-[1.05fr_1fr] gap-x-16 gap-y-6 mt-16 items-center">
+            <Loop />
+            <TiltText className="font-sans font-black tracking-[-0.02em] leading-[1.22] text-[clamp(24px,3vw,38px)]">
+              People come to an event <span className="text-primary">for the NFT</span>. They want the NFT because it
+              <span style={{ color: '#5EC8FF' }}> makes them stronger in games</span>. The game that sponsored it
+              <span style={{ color: '#FBBF24' }}> gets new players</span>. One loop. Everyone in it wins.
+            </TiltText>
+          </div>
+
+          <div className="mt-20">
+            <div className="hidden sm:grid grid-cols-[1.1fr_1fr_1fr] gap-8 pb-3 font-sans text-[11px] font-extrabold uppercase tracking-[0.16em] text-text-tertiary">
+              <span>Who</span><span>Gets</span><span>Brings</span>
             </div>
-          ))}
+            {ECOSYSTEM.map((e) => (
+              <div key={e.who} className="group grid sm:grid-cols-[1.1fr_1fr_1fr] gap-x-8 gap-y-2 border-t border-(--border-subtle) py-7 transition-colors hover:bg-white/[0.02]">
+                <p className="font-poster uppercase leading-none text-[clamp(38px,5vw,64px)] transition-transform group-hover:translate-x-2" style={{ color: e.color }}>{e.who}</p>
+                <p className="font-sans text-[17px] font-black self-center">{e.get}</p>
+                <p className="font-sans text-[16px] font-semibold text-text-secondary self-center">{e.give}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -116,52 +114,87 @@ export default function LandingPage() {
         </ol>
       </section>
 
-      <section className="grain relative overflow-hidden text-white" style={{ background: 'linear-gradient(170deg, #2A1F86 0%, #120D33 70%)' }}>
-        <div aria-hidden className="absolute -right-24 top-20 w-[640px] h-40 rotate-[-16deg] rounded-full opacity-50 blur-md"
-          style={{ background: 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)' }} />
-        <div className="relative z-10 mx-auto max-w-6xl px-5 py-24 grid md:grid-cols-[1fr_auto] gap-10 items-center">
-          <div>
-            <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.14em] text-white/70">Monad Blitz Jogja Vol. 2 · event drop</p>
-            <h2 className="font-poster uppercase leading-[0.9] mt-3" style={{ fontSize: 'clamp(56px, 10vw, 140px)' }}>Blitz Jacket</h2>
-            <p className="font-sans text-[18px] font-bold mt-4 max-w-lg">
-              Only 200 exist, one per person, and only for people who check in at the event. Wear it and it works in every game:
-            </p>
-            <ul className="mt-6 space-y-3 max-w-lg">
-              <li className="rounded-2xl bg-white/10 px-4 py-3 font-sans text-[15px] font-bold">⚡ <b>Blitz Rush:</b> unlocks Blitz Boost, lightning speed that smashes through barriers. The move that beats Rex.</li>
-              <li className="rounded-2xl bg-white/10 px-4 py-3 font-sans text-[15px] font-bold">🪽 <b>Blitz Flap:</b> +1 life and 15% slow-mo.</li>
-              <li className="rounded-2xl bg-white/10 px-4 py-3 font-sans text-[15px] font-bold">🔁 Tradeable on Monad, so it holds its value after the event.</li>
-            </ul>
+      <section className="relative overflow-hidden bg-[#0B0820] text-white">
+        <Marquee text="Monad Blitz Jogja Vol. 2 ⚡ Time to revenge ⚡ 24.10.2026 ⚡ GSIH Jogja ⚡" />
+        <div className="relative mx-auto max-w-6xl px-5 py-24">
+          <p aria-hidden className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-poster uppercase leading-none select-none bg-clip-text text-transparent opacity-25"
+            style={{ fontSize: 'clamp(180px, 38vw, 560px)', backgroundImage: 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)' }}>
+            Blitz
+          </p>
+          <div className="relative grid lg:grid-cols-[1fr_auto_1fr] gap-10 items-center">
+            <div>
+              <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.16em] text-white/60">The event drop</p>
+              <h2 className="font-poster uppercase leading-[0.86] mt-3" style={{ fontSize: 'clamp(64px, 9vw, 128px)' }}>
+                <ScrambleIn text="Blitz" className="block" />
+                <ScrambleIn text="Jacket" className="block" delay={250} />
+              </h2>
+              <p className="font-sans text-[17px] font-bold text-white/75 mt-5 max-w-sm">
+                Only for people who check in at Monad Blitz. Wear it and every game feels it.
+              </p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={BLITZ_HERO} alt="An avatar wearing the Blitz Jacket" className="w-[min(78vw,360px)] mx-auto animate-float drop-shadow-[0_0_60px_rgba(131,110,249,0.65)]" />
+            <dl className="grid grid-cols-3 lg:grid-cols-1 lg:justify-items-end">
+              {[
+                { v: '200', l: 'Will ever exist' },
+                { v: '1', l: 'Per wallet' },
+                { v: '2', l: 'Games it powers' },
+              ].map((m, i) => (
+                <div key={m.l} className={`lg:text-right py-3 ${i ? 'border-l lg:border-l-0 lg:border-t border-white/15 pl-4 lg:pl-0' : ''}`}>
+                  <dd className="font-poster leading-none text-[clamp(52px,7vw,96px)]">{m.v}</dd>
+                  <dt className="font-sans text-[11px] font-extrabold uppercase tracking-[0.14em] text-white/55 mt-1">{m.l}</dt>
+                </div>
+              ))}
+            </dl>
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/api/avatar/190" alt="An avatar wearing the Blitz Jacket" className="w-full max-w-[340px] rounded-[36px] shadow-[0_0_80px_rgba(131,110,249,0.6)] mx-auto" />
+
+          <ul className="relative mt-16">
+            {[
+              { game: 'Blitz Rush', fx: 'Blitz Boost. Lightning speed that smashes through barriers, the move that beats Rex.' },
+              { game: 'Blitz Flap', fx: 'One extra life and 15% slow-mo through the pipes.' },
+              { game: 'Monad', fx: 'Tradeable. It keeps its value long after the lights go off.' },
+            ].map((r) => (
+              <li key={r.game} className="grid sm:grid-cols-[220px_1fr] gap-x-10 gap-y-1 border-t border-white/15 py-6">
+                <span className="font-poster uppercase text-[30px] leading-none text-[#5EC8FF]">⚡ {r.game}</span>
+                <span className="font-sans text-[18px] font-bold leading-snug">{r.fx}</span>
+              </li>
+            ))}
+          </ul>
         </div>
+        <Marquee text="Check in ⚡ Claim ⚡ Wear it ⚡ Win ⚡" reverse />
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-24">
+      <section className="mx-auto max-w-6xl px-5 py-28">
         <p className="eyebrow">Game hub</p>
-        <h2 className="font-poster uppercase leading-[0.95] mt-3" style={{ fontSize: 'clamp(48px, 8vw, 104px)' }}>
-          Your NFTs are <span style={{ color: MONAD_PURPLE }}>your strategy</span>
+        <h2 className="font-poster uppercase leading-[0.9] mt-4" style={{ fontSize: 'clamp(50px, 9vw, 128px)' }}>
+          <ScrambleIn text="Your NFTs are" className="block" />
+          <ScrambleIn text="your strategy" className="block text-primary" delay={300} />
         </h2>
-        <p className="font-sans text-[17px] font-semibold text-text-secondary mt-4 max-w-2xl">
-          Every game reads what your avatar wears. Two games are live, and more come from event sponsors.
+        <p className="font-sans text-[18px] font-semibold text-text-secondary mt-5 max-w-xl">
+          Every game reads what your avatar wears. Not just looks: lives, speed and whole new moves.
         </p>
-        <div className="grid md:grid-cols-2 gap-4 mt-10">
-          {GAMES.map((g) => (
-            <Link key={g.name} href={g.href} className="grain relative overflow-hidden rounded-[32px] p-6 text-white block active:scale-[0.99] transition-transform" style={{ background: g.bg }}>
-              <p className="font-poster uppercase text-[56px] leading-none">{g.name}</p>
-              <p className="font-sans text-[15px] font-bold text-white/80 mt-3 max-w-sm">{g.pitch}</p>
-              <ul className="mt-5 space-y-2">
+
+        {GAMES.map((g, i) => (
+          <div key={g.name} className={`grid md:grid-cols-2 gap-12 items-center mt-24 ${i % 2 ? 'md:[&>*:first-child]:order-2' : ''}`}>
+            <div>
+              <p className="font-mono text-[13px] text-text-tertiary">0{i + 1} / 02</p>
+              <h3 className="font-poster uppercase leading-[0.88] mt-2 text-[clamp(64px,9vw,120px)]">{g.name}</h3>
+              <p className="font-sans text-[18px] font-bold text-text-secondary mt-4 max-w-md">{g.pitch}</p>
+              <ul className="mt-8">
                 {g.nft.map(([item, effect]) => (
-                  <li key={item} className="flex justify-between gap-3 rounded-xl bg-black/25 px-3 py-2 font-sans text-[13px] font-bold">
-                    <span>{item}</span>
-                    <span className="text-[#5EE6B8] text-right">{effect}</span>
+                  <li key={item} className="flex items-baseline justify-between gap-6 border-t border-(--border-subtle) py-3.5">
+                    <span className="font-sans text-[15px] font-black">{item}</span>
+                    <span className="font-sans text-[14px] font-bold text-[#5EE6B8] text-right">{effect}</span>
                   </li>
                 ))}
               </ul>
-              <span className="inline-flex items-center gap-2 mt-5 font-sans text-[14px] font-extrabold uppercase tracking-[0.06em]">Play <ArrowRight className="w-4 h-4" /></span>
-            </Link>
-          ))}
-        </div>
+              <Link href={g.href} className="group inline-flex items-center gap-2 mt-8 font-poster uppercase text-[34px] leading-none border-b-4 border-primary pb-1">
+                Play {g.name} <ArrowUpRight className="w-7 h-7 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" />
+              </Link>
+            </div>
+            <g.Scene />
+          </div>
+        ))}
       </section>
 
       <section className="mx-auto max-w-6xl px-5 pb-24">
@@ -280,6 +313,19 @@ export default function LandingPage() {
           </span>
         </div>
       </footer>
+    </div>
+  )
+}
+
+/** A full-width strip of poster type sliding forever, like the bands on an event stage. */
+function Marquee({ text, reverse = false }: { text: string; reverse?: boolean }) {
+  return (
+    <div aria-hidden className="overflow-hidden py-3" style={{ background: 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)' }}>
+      <div className="flex w-max animate-marquee" style={reverse ? { animationDirection: 'reverse' } : undefined}>
+        {Array.from({ length: 8 }, (_, i) => (
+          <span key={i} className="font-poster uppercase text-[28px] leading-none text-[#0B0820] px-4 whitespace-nowrap">{text}</span>
+        ))}
+      </div>
     </div>
   )
 }

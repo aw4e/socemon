@@ -8,11 +8,12 @@ const svg = (body: string, maxAge: number) =>
   new Response(body, { headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': `public, max-age=${maxAge}` } })
 
 /** SVG image for a trainer's avatar (`/api/avatar/0x…`, what they wear now plus their partner as pet) or for one
-    wearable (`/api/avatar/120`). `?wear=100,0,120,…` previews any outfit, one id per slot. */
+    wearable (`/api/avatar/120`). `?wear=100,0,120,…` previews any outfit, one id per slot (`&bare` drops the backdrop). */
 export async function GET(req: Request, { params }: { params: Promise<{ key: string }> }) {
   const { key } = await params
-  const wear = new URL(req.url).searchParams.get('wear')
-  if (wear !== null) return svg(renderAvatar(wear.split(',').map((n) => Number(n) || 0)), 60)
+  const query = new URL(req.url).searchParams
+  const wear = query.get('wear')
+  if (wear !== null) return svg(renderAvatar(wear.split(',').map((n) => Number(n) || 0), undefined, query.has('bare')), 3600)
 
   if (/^\d{1,4}$/.test(key)) {
     const body = renderWearable(Number(key))

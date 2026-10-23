@@ -128,8 +128,24 @@ body {
 }
 .animate-sweep { animation: sweep 2.6s ease-in-out infinite; }
 
+/* Landing: marquee strip, racing lane dashes, scrolling pipes, the ecosystem loop's orbiting spark. */
+@keyframes marquee { to { transform: translateX(-50%); } }
+.animate-marquee { animation: marquee 28s linear infinite; }
+@keyframes lane { to { background-position: 0 120px; } }
+.animate-lane { animation: lane 0.5s linear infinite; }
+@keyframes pipes { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.animate-pipes { animation: pipes 6s linear infinite; }
+@keyframes orbit { to { transform: rotate(360deg); } }
+.animate-orbit { animation: orbit 9s linear infinite; }
+@keyframes bob { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-26px) rotate(8deg); } }
+.animate-bob { animation: bob 1.1s ease-in-out infinite; }
+@keyframes drop { from { transform: translateY(-140%); } to { transform: translateY(1400%); } }
+.animate-drop { animation: drop 2.2s linear infinite; }
+@keyframes zap { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.animate-zap { animation: zap 0.18s steps(2) infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-float, .animate-sweep { animation: none; }
+  .animate-float, .animate-sweep, .animate-marquee, .animate-lane, .animate-pipes, .animate-orbit, .animate-bob, .animate-zap, .animate-drop { animation: none; }
 }
 
 /* Desktop: the app column sits between hairlines on the darker stage. */
