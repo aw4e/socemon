@@ -26,7 +26,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ key: str
     publicClient.readContract({ address, abi: SOCEMON_ABI, functionName: 'profileOf', args: [key as Address] }),
   ])
   let pet: string | undefined
-  if (profile.partner > 0n) {
+  if (profile.registered) {
     // ponytail: inlined so marketplaces render it; drop to a plain URL if pet PNGs get heavy
     const png = await fetch(new URL(imageFor(Number(profile.partner)), req.url))
     if (png.ok) pet = `data:image/png;base64,${Buffer.from(await png.arrayBuffer()).toString('base64')}`

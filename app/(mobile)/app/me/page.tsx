@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Check, ChevronRight, Copy, ExternalLink, LogOut } from 'lucide-react'
+import { Check, ChevronRight, Copy, ExternalLink, LogOut, Shirt } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { TypeChip } from '@/components/socemon/TypeChip'
@@ -71,6 +71,21 @@ export default function MePage() {
         </dl>
       </section>
 
+      <Link
+        href="/app/wardrobe"
+        className="mt-5 flex items-center gap-4 rounded-[24px] bg-bg-surface border border-(--border-default) p-3 pr-4"
+      >
+        <img src={`/api/avatar/${user}`} alt="Your avatar" className="w-20 h-20 rounded-[18px] shrink-0" />
+        <span className="flex-1 min-w-0">
+          <span className="eyebrow block">Avatar</span>
+          <span className="font-sans text-[18px] font-black text-text-primary flex items-center gap-2">
+            <Shirt className="w-5 h-5 text-primary" /> Wardrobe
+          </span>
+          <span className="font-sans text-[12px] font-bold text-text-tertiary">Open blind boxes and dress up</span>
+        </span>
+        <ChevronRight className="w-5 h-5 text-text-tertiary" />
+      </Link>
+
       <button onClick={copy} className="mt-5 w-full flex items-center justify-between py-3 border-b border-(--border-subtle)">
         <span className="text-left">
           <span className="eyebrow block">Wallet</span>
@@ -96,7 +111,7 @@ export default function MePage() {
       </ul>
 
       <p className="font-sans text-[13px] font-bold text-text-tertiary mt-5">
-        Your Socemon live in this wallet. Event drops can be traded; everything else is soulbound.
+        Your Socemon and wearables live in this wallet. Wearables and event drops can be traded; everything else is soulbound.
       </p>
 
       <Button variant="secondary" fullWidth className="mt-6" onClick={signOut}>

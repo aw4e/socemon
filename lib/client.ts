@@ -4,6 +4,7 @@ import { monadTestnet } from 'viem/chains'
 import { createSiweMessage } from 'viem/siwe'
 import { useConnection, useReadContracts, useSignMessage } from 'wagmi'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
+import { WEARABLES } from '@/lib/avatar'
 import { SPECIES } from '@/lib/socemon'
 import { shortAddress } from '@/lib/utils'
 
@@ -83,6 +84,28 @@ export function useTrainer(address: Address | null | undefined, refetchInterval?
     pending: data?.[2],
     connections: data?.[3],
     owned: new Set((data?.[4] ?? []).flatMap((n, id) => (n > 0n ? [id] : []))),
+    refetch,
+  }
+}
+
+const WEARABLE_IDS = WEARABLES.map((w) => BigInt(w.id))
+
+/** Blind boxes left, what the avatar wears now (one id per slot) and which wearables the trainer owns. */
+export function useWardrobe(address: Address) {
+  const contract = { address: socemonAddress(), abi: SOCEMON_ABI, chainId: monadTestnet.id } as const
+  const { data, isLoading, refetch } = useReadContracts({
+    allowFailure: false,
+    contracts: [
+      { ...contract, functionName: 'boxes', args: [address] },
+      { ...contract, functionName: 'equippedOf', args: [address] },
+      { ...contract, functionName: 'balanceOfBatch', args: [WEARABLE_IDS.map(() => address), WEARABLE_IDS] },
+    ],
+  })
+  return {
+    loading: isLoading,
+    boxes: data?.[0] ?? 0,
+    equipped: (data?.[1] ?? []).map(Number),
+    owned: new Map(WEARABLES.map((w, i) => [w.id, Number(data?.[2][i] ?? 0n)])),
     refetch,
   }
 }
