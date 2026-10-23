@@ -16,6 +16,8 @@ const TABS = [
    `requests` puts a badge on Home while connection requests wait for approval. */
 export function BottomNav({ requests }: { requests: number }) {
   const path = usePathname()
+  /* the page editor has its own Save bar along the bottom; the raised Scan button would poke out above it */
+  if (path.startsWith('/app/me/edit')) return null
   return (
     <nav
       aria-label="App"

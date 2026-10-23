@@ -7,21 +7,31 @@ import { monadTestnet } from 'viem/chains'
 import { useReadContracts } from 'wagmi'
 import { Logo } from '@/components/brand/Logo'
 import { Gate } from '@/components/Gate'
-import { MonsterStage } from '@/components/socemon/MonsterStage'
-import { TypeChip } from '@/components/socemon/TypeChip'
+import { PageView } from '@/components/profile/PageView'
 import { Connected } from '@/components/socemon/Connected'
 import { Button } from '@/components/ui/Button'
 import { PageSpinner } from '@/components/ui/PageSpinner'
 import { SOCEMON_ABI, socemonAddress } from '@/lib/abi'
-import { post, useTrainer } from '@/lib/client'
+import { post, request, useTrainer } from '@/lib/client'
+import { DEFAULT_DESIGN, resolveColors, type ProfileExtras } from '@/lib/profile-page'
+import { recordScan } from '@/lib/scans'
 import { SPECIES, typesCaught } from '@/lib/socemon'
 
-/* What a friend sees after scanning your QR: your partner, your progress, and a Connect button. */
+/* What a friend sees after scanning your QR: your page (pet, bio, links, in the look you chose), your progress, and a Connect button. */
 export default function TrainerPage() {
   const { address } = useParams<{ address: string }>()
   const target = isAddress(address, { strict: false }) ? getAddress(address) : null
   const trainer = useTrainer(target)
   const profile = trainer.profile
+  const [extras, setExtras] = useState<ProfileExtras | null>(null)
+
+  useEffect(() => {
+    if (!target) return
+    let cancelled = false
+    /* the page works without them: a failed load just shows the default look and no links */
+    request<ProfileExtras>('GET', `/api/profile?address=${target}`).then((d) => { if (!cancelled) setExtras(d) }).catch(() => {})
+    return () => { cancelled = true }
+  }, [target])
 
   if (target && trainer.loading) return <PageSpinner />
   if (target && trainer.error) {
@@ -42,33 +52,25 @@ export default function TrainerPage() {
     )
   }
 
-  const partner = Number(profile.partner)
   return (
-    <main className="px-5 pb-10">
-      <header className="h-16 flex items-center">
-        <Link href="/" aria-label="Socemon home"><Logo height={22} tone="dark" /></Link>
-      </header>
-      <section className="flex flex-col items-center text-center">
-        <p className="eyebrow">Trainer</p>
-        <MonsterStage id={partner} size={200} />
-        <h1 className="font-sans font-black text-[32px] leading-tight mt-1">{profile.name}</h1>
-        <TypeChip role={profile.role} className="mt-2" />
-      </section>
-      <dl className="grid grid-cols-3 mt-7 divide-x divide-(--border-subtle)">
-        {[
-          { value: trainer.connections?.length ?? 0, label: 'Friends' },
-          { value: `${typesCaught(trainer.owned)}/5`, label: 'Types' },
-          { value: `${trainer.owned.size}/${SPECIES.length + 1}`, label: 'Caught' },
-        ].map((s) => (
-          <div key={s.label} className="flex flex-col-reverse items-center gap-1">
-            <dt className="eyebrow">{s.label}</dt>
-            <dd className="font-poster text-[32px] leading-none">{s.value}</dd>
-          </div>
-        ))}
-      </dl>
-      <section className="mt-8">
-        <Gate>{(viewer) => <ConnectBox viewer={viewer} target={target} name={profile.name} />}</Gate>
-      </section>
+    <main>
+      <PageView
+        trainer={{
+          name: profile.name, role: profile.role, partner: Number(profile.partner),
+          friends: trainer.connections?.length ?? 0, types: `${typesCaught(trainer.owned)}/5`, caught: `${trainer.owned.size}/${SPECIES.length + 1}`,
+        }}
+        extras={extras ?? { bio: '', skills: [], links: [] }}
+        design={extras?.design ?? DEFAULT_DESIGN}
+        footer={
+          <>
+            {/* the Connect card keeps the game's own dark look, whatever theme the trainer picked */}
+            <section className="rounded-[28px] bg-bg-base text-text-primary border-2 border-(--border-default) p-5">
+              <Gate>{(viewer) => <ConnectBox viewer={viewer} target={target} name={profile.name} />}</Gate>
+            </section>
+            <Link href="/" aria-label="Socemon home" className="self-center opacity-80"><Logo height={20} tone={resolveColors(extras?.design ?? DEFAULT_DESIGN).dark ? 'dark' : 'light'} /></Link>
+          </>
+        }
+      />
     </main>
   )
 }
@@ -87,6 +89,8 @@ function ConnectBox({ viewer, target, name }: { viewer: Address; target: Address
   const [error, setError] = useState('')
   const [friends, setFriends] = useState(false)
   const code = useSearchParams().get('c') ?? undefined
+  /* a phone camera scan lands here with the live code and never passes through the in-app scanner */
+  useEffect(() => { if (code && viewer !== target) recordScan(viewer, target) }, [code, viewer, target])
 
   async function connect() {
     setBusy(true)

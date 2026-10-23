@@ -11,6 +11,7 @@ import { errorFor } from '../lib/errors'
 import { perksFor, rushKitFor } from '../lib/game'
 import { parseScan } from '../lib/scan'
 import { readToken, signToken } from '../lib/session'
+import { DEFAULT_DESIGN, expandLink, isSafeLinkUrl, resolveDesign, sanitizeLinks, sanitizePageDesign } from '../lib/profile-page'
 import { sanitizePay, sanitizeSkills } from '../lib/explore'
 
 test.describe('socemon catalog', () => {
@@ -263,6 +264,39 @@ test('rate limiter lets max hits through per window, then resets', () => {
   const hit = (now: number) => underLimit('rl-test', 3, 1000, now)
   expect([hit(t), hit(t), hit(t), hit(t)]).toEqual([true, true, true, false])
   expect(hit(t + 1000)).toBe(true)
+})
+
+test('profile links only accept safe addresses', () => {
+  const link = (url: string, over: object = {}) => ({ id: 'a1', platform: 'github', label: 'me', url, isVisible: true, position: 0, ...over })
+  expect(sanitizeLinks([link('https://github.com/me')])).toHaveLength(1)
+  expect(sanitizeLinks([link('mailto:me@mail.com')])).toHaveLength(1)
+  for (const bad of ['javascript:alert(1)', 'data:text/html,hi', 'not a url', 'file:///etc/passwd']) expect(sanitizeLinks([link(bad)]), bad).toBeNull()
+  expect(sanitizeLinks([link('https://x.co', { platform: 'myspace' })])).toBeNull()
+  expect(sanitizeLinks([link('https://x.co'), link('https://y.co')])).toBeNull() // duplicate id
+  expect(sanitizeLinks(Array.from({ length: 21 }, (_, i) => link('https://x.co', { id: `l${i}` })))).toBeNull()
+  expect(expandLink('github', 'aw4e')).toBe('https://github.com/aw4e')
+  expect(expandLink('github', '@aw4e')).toBe('https://github.com/aw4e')
+  expect(expandLink('github', 'github.com/aw4e')).toBe('https://github.com/aw4e')
+  expect(expandLink('instagram', 'me')).toBe('https://instagram.com/me')
+  expect(expandLink('twitter', 'me')).toBe('https://x.com/me')
+  expect(expandLink('tiktok', '@me')).toBe('https://tiktok.com/@me')
+  expect(expandLink('whatsapp', '+62 812-3456')).toBe('https://wa.me/628123456')
+  expect(expandLink('website', 'mysite')).toBe('https://mysite.com')
+  expect(expandLink('website', 'site.xyz')).toBe('https://site.xyz')
+  expect(expandLink('email', 'me@mail.com')).toBe('mailto:me@mail.com')
+  expect(expandLink('github', 'https://x.co')).toBe('https://x.co')
+  expect(expandLink('github', '  ')).toBe('')
+  expect(isSafeLinkUrl(expandLink('custom', 'javascript:alert(1)'))).toBe(false)
+})
+
+test('page designs are validated and always complete', () => {
+  expect(resolveDesign(undefined)).toEqual(DEFAULT_DESIGN)
+  expect(sanitizePageDesign({ theme: 'paper', accent: '#FF8A3D' })?.accent).toBe('#ff8a3d')
+  expect(sanitizePageDesign({ theme: 'nope' })).toBeNull()
+  expect(sanitizePageDesign({ accent: 'red' })).toBeNull()
+  expect(sanitizePageDesign({ blocks: [{ id: 'a', type: 'bio', visible: true }, { id: 'b', type: 'bio', visible: true }] })).toBeNull() // one of each
+  expect(sanitizePageDesign({ blocks: [{ id: 'a', type: 'text', visible: true, text: 'x'.repeat(281) }] })).toBeNull()
+  expect(sanitizePageDesign({ blocks: [{ id: 'a', type: 'text', visible: true, text: 'hi' }, { id: 'b', type: 'text', visible: false, text: 'yo' }] })?.blocks).toHaveLength(2)
 })
 
 test('explore posts: skills and pay are cleaned', () => {

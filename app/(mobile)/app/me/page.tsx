@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Check, ChevronRight, Copy, ExternalLink, LogOut, Shirt } from 'lucide-react'
+import { Check, ChevronRight, Copy, ExternalLink, LogOut, Palette, Shirt } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { Socedex } from '@/components/socemon/Socedex'
@@ -73,8 +73,20 @@ export default function MePage() {
       </section>
 
       <Link
+        href="/app/me/edit"
+        className="mt-5 flex items-center gap-4 rounded-[24px] bg-primary text-primary-fg p-4 shadow-[0_4px_0_var(--primary-shadow)] active:translate-y-1 active:shadow-none transition-transform"
+      >
+        <span className="w-12 h-12 shrink-0 rounded-2xl bg-white/20 flex items-center justify-center"><Palette className="w-6 h-6" /></span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-sans text-[18px] font-black">Edit my page</span>
+          <span className="block font-sans text-[12px] font-bold text-white/80">Add links, a bio, and pick how it looks</span>
+        </span>
+        <ChevronRight className="w-5 h-5" />
+      </Link>
+
+      <Link
         href="/app/wardrobe"
-        className="mt-5 flex items-center gap-4 rounded-[24px] bg-bg-surface border border-(--border-default) p-3 pr-4"
+        className="mt-4 flex items-center gap-4 rounded-[24px] bg-bg-surface border border-(--border-default) p-3 pr-4"
       >
         <img src={`/api/avatar/${user}`} alt="Your avatar" className="w-20 h-20 rounded-[18px] shrink-0" />
         <span className="flex-1 min-w-0">
