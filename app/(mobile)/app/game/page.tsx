@@ -1,7 +1,8 @@
 'use client'
 import { useMemo } from 'react'
 import Link from 'next/link'
-import { Play, Sparkles } from 'lucide-react'
+import { Lock, Play, Sparkles } from 'lucide-react'
+import { ItemGlyph } from '@/components/game/ItemGlyph'
 import { PerkList } from '@/components/game/PerkList'
 import { PageHeader } from '@/components/PageHeader'
 import { renderAvatar } from '@/lib/avatar'
@@ -65,11 +66,11 @@ export default function GameHub() {
             const on = kit.abilities.includes(a)
             return (
               <span key={a.id} className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full font-sans text-[12px] font-black ${on ? 'bg-white text-[#0B0820]' : 'bg-white/10 text-white/50'}`}>
-                {on ? { boost: '⚡', fly: '🪽', slash: '🗡️' }[a.id] : '🔒'} {a.name}
+                {on ? <ItemGlyph id={a.from} className="h-5 w-auto" /> : <Lock className="w-3.5 h-3.5" />} {a.name}
               </span>
             )
           })}
-          {kit.shields > 0 && <span className="inline-flex items-center h-8 px-3 rounded-full bg-white text-[#0B0820] font-sans text-[12px] font-black">🛡️ Shield</span>}
+          {kit.shields > 0 && <span className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-white text-[#0B0820] font-sans text-[12px] font-black"><ItemGlyph id={180} className="h-5 w-auto" /> Shield</span>}
         </div>
         <span className="relative mt-4 inline-flex items-center gap-2 h-12 px-6 rounded-2xl bg-white text-[#0B0820] font-sans text-[14px] font-extrabold uppercase tracking-[0.05em] shadow-[0_4px_0_rgba(0,0,0,0.3)]">
           <Play className="w-4 h-4 fill-current" /> Race

@@ -51,10 +51,10 @@ Every game reads what the avatar wears and which pet it has. The rules live in `
 
 | Wearable | Move |
 | --- | --- |
-| Blitz Jacket (event) | ⚡ Blitz Boost |
-| Circuit Wings (legendary) | 🪽 Fly over barriers |
-| Plasma Blade (epic) | 🗡️ Slash the barrier ahead |
-| Hero Cape (rare) | 🛡️ Shield against one crash |
+| Blitz Jacket (event) | Blitz Boost |
+| Circuit Wings (legendary) | Fly over barriers |
+| Plasma Blade (epic) | Slash the barrier ahead |
+| Hero Cape (rare) | Shield against one crash |
 | Neon Jacket, Night Blazer, pet | Higher top speed |
 
 **Blitz Flap** flies your avatar through pipes with your pet trailing behind:

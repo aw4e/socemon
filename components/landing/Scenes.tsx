@@ -1,3 +1,5 @@
+import { Heart, Zap } from 'lucide-react'
+
 /* Live-looking miniatures of the ecosystem and both games, in CSS and SVG only (keyframes in globals.css). */
 
 const IRIS = 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)'
@@ -6,7 +8,6 @@ const IRIS = 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)'
 const avatar = (wear: number[]) => `/api/avatar/preview?wear=${wear.join(',')}&bare`
 const BLITZ_RACER = avatar([0, 111, 0, 190, 140, 0, 161, 0, 0])
 const WINGED = avatar([101, 110, 120, 131, 141, 0, 0, 0, 181])
-export const BLITZ_HERO = avatar([0, 110, 0, 190, 142, 0, 0, 0, 0])
 
 /** The ecosystem as a loop: three parties on one ring, a spark that never stops going round. */
 export function Loop() {
@@ -102,7 +103,7 @@ export function RushScene() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={BLITZ_RACER} alt="" className="absolute left-1/2 -translate-x-1/2 top-[50%] w-[34%]" />
       <p className="absolute left-5 top-5 font-poster text-[44px] leading-none text-white">P1<span className="text-[18px] text-white/50">/4</span></p>
-      <p className="absolute right-4 bottom-5 flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 ring-2 ring-[#5EC8FF] text-[26px] shadow-[0_0_24px_#5EC8FF]">⚡</p>
+      <p className="absolute right-4 bottom-5 flex items-center justify-center w-14 h-14 rounded-2xl bg-white/10 ring-2 ring-[#5EC8FF] shadow-[0_0_24px_#5EC8FF]"><Zap className="w-7 h-7 text-[#E9FFFF] fill-[#5EC8FF]" /></p>
     </Viewport>
   )
 }
@@ -126,7 +127,7 @@ export function FlapScene() {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={WINGED} alt="" className="absolute left-[10%] top-[38%] w-[42%] animate-bob" />
       <p className="absolute inset-x-0 top-[8%] text-center font-poster text-[64px] leading-none text-white drop-shadow-[0_4px_0_rgba(0,0,0,0.5)]">27</p>
-      <p className="absolute left-5 top-5 text-[18px] tracking-[2px]">❤️❤️❤️</p>
+      <p className="absolute left-5 top-5 flex gap-1">{[0, 1, 2].map((i) => <Heart key={i} className="w-5 h-5 text-[#FF5C8A] fill-[#FF5C8A]" />)}</p>
     </Viewport>
   )
 }

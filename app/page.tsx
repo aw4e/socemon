@@ -2,7 +2,9 @@ import Link from 'next/link'
 import { ArrowRight, ArrowUpRight } from 'lucide-react'
 import { HeroCarousel } from '@/components/landing/HeroCarousel'
 import { ScrambleIn, TiltText } from '@/components/landing/Motion'
-import { BLITZ_HERO, FlapScene, Loop, RushScene } from '@/components/landing/Scenes'
+import { BlitzReveal } from '@/components/landing/BlitzReveal'
+import { EcosystemIndex } from '@/components/landing/EcosystemIndex'
+import { FlapScene, Loop, RushScene } from '@/components/landing/Scenes'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { MONAD_PURPLE, POOL, ROLES, TIER_COLOR, TYPE_COLOR, speciesById } from '@/lib/socemon'
 
@@ -22,17 +24,17 @@ const STEPS = [
   { color: TYPE_COLOR[POOL.prism], title: 'Play', body: 'Wear your NFTs in the Game hub. They are not just looks: they give extra lives, speed and new moves.' },
 ]
 
-const GAMES = [
+const GAMES: { href: string; name: string; Scene: () => React.ReactNode; pitch: string; nft: [number | 'pet', string, string][] }[] = [
   {
     href: '/app/game/rush',
     name: 'Blitz Rush',
     Scene: RushScene,
     pitch: 'Race three rivals across three lanes. The fastest one is out of reach on skill alone.',
     nft: [
-      ['⚡ Blitz Jacket', 'Blitz Boost: lightning speed through barriers'],
-      ['🪽 Circuit Wings', 'Fly over barriers'],
-      ['🗡️ Plasma Blade', 'Slash the barrier ahead'],
-      ['🛡️ Hero Cape', 'Shrug off one crash'],
+      [190, 'Blitz Jacket', 'Blitz Boost: lightning speed through barriers'],
+      [181, 'Circuit Wings', 'Fly over barriers'],
+      [171, 'Plasma Blade', 'Slash the barrier ahead'],
+      [180, 'Hero Cape', 'Shrug off one crash'],
     ],
   },
   {
@@ -41,10 +43,10 @@ const GAMES = [
     Scene: FlapScene,
     pitch: 'Tap to fly your own avatar through the pipes, your pet trailing behind.',
     nft: [
-      ['🪽 Wings and capes', 'Extra lives'],
-      ['🕶️ Visors and glasses', 'A wider gap'],
-      ['⚡ Blitz Jacket', '+1 life and slow-mo'],
-      ['🐾 Your pet', 'Score multiplier by rarity'],
+      [181, 'Wings and capes', 'Extra lives'],
+      [161, 'Visors and glasses', 'A wider gap'],
+      [190, 'Blitz Jacket', '+1 life and slow-mo'],
+      ['pet', 'Your pet', 'Score multiplier by rarity'],
     ],
   },
 ]
@@ -82,17 +84,8 @@ export default function LandingPage() {
             </TiltText>
           </div>
 
-          <div className="mt-20">
-            <div className="hidden sm:grid grid-cols-[1.1fr_1fr_1fr] gap-8 pb-3 font-sans text-[11px] font-extrabold uppercase tracking-[0.16em] text-text-tertiary">
-              <span>Who</span><span>Gets</span><span>Brings</span>
-            </div>
-            {ECOSYSTEM.map((e) => (
-              <div key={e.who} className="group grid sm:grid-cols-[1.1fr_1fr_1fr] gap-x-8 gap-y-2 border-t border-(--border-subtle) py-7 transition-colors hover:bg-white/[0.02]">
-                <p className="font-poster uppercase leading-none text-[clamp(38px,5vw,64px)] transition-transform group-hover:translate-x-2" style={{ color: e.color }}>{e.who}</p>
-                <p className="font-sans text-[17px] font-black self-center">{e.get}</p>
-                <p className="font-sans text-[16px] font-semibold text-text-secondary self-center">{e.give}</p>
-              </div>
-            ))}
+          <div className="mt-24">
+            <EcosystemIndex parties={ECOSYSTEM} />
           </div>
         </div>
       </section>
@@ -114,61 +107,36 @@ export default function LandingPage() {
         </ol>
       </section>
 
-      <section className="relative overflow-hidden bg-[#0B0820] text-white">
-        <Marquee text="Monad Blitz Jogja Vol. 2 ⚡ Time to revenge ⚡ 24.10.2026 ⚡ GSIH Jogja ⚡" />
-        <div className="relative mx-auto max-w-6xl px-5 py-24">
-          <p aria-hidden className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center font-poster uppercase leading-none select-none bg-clip-text text-transparent opacity-25"
-            style={{ fontSize: 'clamp(180px, 38vw, 560px)', backgroundImage: 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)' }}>
-            Blitz
-          </p>
-          <div className="relative grid lg:grid-cols-[1fr_auto_1fr] gap-10 items-center">
-            <div>
-              <p className="font-sans text-[12px] font-extrabold uppercase tracking-[0.16em] text-white/60">The event drop</p>
-              <h2 className="font-poster uppercase leading-[0.86] mt-3" style={{ fontSize: 'clamp(64px, 9vw, 128px)' }}>
-                <ScrambleIn text="Blitz" className="block" />
-                <ScrambleIn text="Jacket" className="block" delay={250} />
-              </h2>
-              <p className="font-sans text-[17px] font-bold text-white/75 mt-5 max-w-sm">
-                Only for people who check in at Monad Blitz. Wear it and every game feels it.
-              </p>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={BLITZ_HERO} alt="An avatar wearing the Blitz Jacket" className="w-[min(78vw,360px)] mx-auto animate-float drop-shadow-[0_0_60px_rgba(131,110,249,0.65)]" />
-            <dl className="grid grid-cols-3 lg:grid-cols-1 lg:justify-items-end">
-              {[
-                { v: '200', l: 'Will ever exist' },
-                { v: '1', l: 'Per wallet' },
-                { v: '2', l: 'Games it powers' },
-              ].map((m, i) => (
-                <div key={m.l} className={`lg:text-right py-3 ${i ? 'border-l lg:border-l-0 lg:border-t border-white/15 pl-4 lg:pl-0' : ''}`}>
-                  <dd className="font-poster leading-none text-[clamp(52px,7vw,96px)]">{m.v}</dd>
-                  <dt className="font-sans text-[11px] font-extrabold uppercase tracking-[0.14em] text-white/55 mt-1">{m.l}</dt>
-                </div>
-              ))}
-            </dl>
+      <section aria-label="Blitz Jacket, the Monad Blitz event drop" className="text-white">
+        <BlitzReveal>
+          <div className="pointer-events-none absolute inset-0 font-mono text-[11px] sm:text-[12px] uppercase tracking-[0.16em] leading-[1.7]">
+            <p className="absolute" style={{ left: 'clamp(16px, 2.6vw, 36px)', top: 'clamp(16px, 2.6vw, 36px)' }}>
+              Monad Blitz Jogja Vol. 2<br /><span className="text-white/60">The event drop</span>
+            </p>
+            <p className="absolute text-right" style={{ right: 'clamp(16px, 2.6vw, 36px)', top: 'clamp(16px, 2.6vw, 36px)' }}>
+              24.10.2026<br /><span className="text-white/60">GSIH Jogja</span>
+            </p>
+            <p className="absolute" style={{ left: 'clamp(16px, 2.6vw, 36px)', bottom: 'clamp(16px, 2.6vw, 36px)' }}>
+              <span className="block w-7 h-[2px] bg-white mb-4" />Drag to suit up<br /><span className="text-white/60">200 exist · one per wallet</span>
+            </p>
+            <p className="absolute text-right hidden sm:block" style={{ right: 'clamp(16px, 2.6vw, 36px)', bottom: 'clamp(16px, 2.6vw, 36px)' }}>
+              Rush · Blitz Boost<br />Flap · +1 life, slow-mo<br /><span className="text-white/60">Tradeable on Monad</span>
+            </p>
           </div>
-
-          <ul className="relative mt-16">
-            {[
-              { game: 'Blitz Rush', fx: 'Blitz Boost. Lightning speed that smashes through barriers, the move that beats Rex.' },
-              { game: 'Blitz Flap', fx: 'One extra life and 15% slow-mo through the pipes.' },
-              { game: 'Monad', fx: 'Tradeable. It keeps its value long after the lights go off.' },
-            ].map((r) => (
-              <li key={r.game} className="grid sm:grid-cols-[220px_1fr] gap-x-10 gap-y-1 border-t border-white/15 py-6">
-                <span className="font-poster uppercase text-[30px] leading-none text-[#5EC8FF]">⚡ {r.game}</span>
-                <span className="font-sans text-[18px] font-bold leading-snug">{r.fx}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <Marquee text="Check in ⚡ Claim ⚡ Wear it ⚡ Win ⚡" reverse />
+        </BlitzReveal>
+        <Marquee text="Check in · Claim · Suit up · Win · " />
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-28">
-        <p className="eyebrow">Game hub</p>
-        <h2 className="font-poster uppercase leading-[0.9] mt-4" style={{ fontSize: 'clamp(50px, 9vw, 128px)' }}>
+        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4 font-mono text-[11px] uppercase tracking-[0.26em] text-text-tertiary">
+          <span className="flex items-center gap-3">02 <span className="block w-10 h-px bg-current" /></span>
+          <span className="text-center">// Game hub</span>
+          <span>2 live</span>
+        </div>
+        <h2 className="font-poster uppercase leading-[0.9] mt-10" style={{ fontSize: 'clamp(50px, 9vw, 128px)' }}>
           <ScrambleIn text="Your NFTs are" className="block" />
-          <ScrambleIn text="your strategy" className="block text-primary" delay={300} />
+          <ScrambleIn text="your strategy" className="block bg-clip-text text-transparent [filter:drop-shadow(0_0_28px_rgba(94,200,255,0.45))]" delay={300}
+            style={{ backgroundImage: 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)' }} />
         </h2>
         <p className="font-sans text-[18px] font-semibold text-text-secondary mt-5 max-w-xl">
           Every game reads what your avatar wears. Not just looks: lives, speed and whole new moves.
@@ -180,11 +148,17 @@ export default function LandingPage() {
               <p className="font-mono text-[13px] text-text-tertiary">0{i + 1} / 02</p>
               <h3 className="font-poster uppercase leading-[0.88] mt-2 text-[clamp(64px,9vw,120px)]">{g.name}</h3>
               <p className="font-sans text-[18px] font-bold text-text-secondary mt-4 max-w-md">{g.pitch}</p>
-              <ul className="mt-8">
-                {g.nft.map(([item, effect]) => (
-                  <li key={item} className="flex items-baseline justify-between gap-6 border-t border-(--border-subtle) py-3.5">
-                    <span className="font-sans text-[15px] font-black">{item}</span>
-                    <span className="font-sans text-[14px] font-bold text-[#5EE6B8] text-right">{effect}</span>
+              <ul className="mt-9 grid grid-cols-2 gap-x-6 gap-y-7">
+                {g.nft.map(([id, item, effect]) => (
+                  <li key={item} className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={id === 'pet' ? '/socemon/2.png' : `/api/avatar/x?item=${id}`}
+                      alt=""
+                      className="h-16 w-auto max-w-[96px] object-contain [filter:drop-shadow(0_0_14px_rgba(94,200,255,0.55))_drop-shadow(0_0_2px_rgba(255,255,255,0.4))]"
+                    />
+                    <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-tertiary mt-3">{item}</p>
+                    <p className="font-sans text-[16px] font-black leading-snug mt-1">{effect}</p>
                   </li>
                 ))}
               </ul>

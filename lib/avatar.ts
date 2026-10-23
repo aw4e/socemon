@@ -196,3 +196,14 @@ export function renderWearable(id: number): string | null {
   equipped[w.slot] = id
   return renderAvatar(equipped)
 }
+
+/** Where each slot's art sits on the rig, so an item can be drawn on its own (minX minY width height). */
+const SLOT_VIEW = ['132 48 136 112', '150 236 100 100', '124 150 152 112', '124 146 152 116', '128 8 144 96', '112 22 176 92', '138 86 124 44', '228 104 54 176', '24 112 352 248']
+
+/** Just the wearable, no body: a transparent glyph of the item itself, for lists and loadouts. Skins show the face. */
+export function renderItem(id: number): string | null {
+  const w = wearableById(id)
+  if (!w) return null
+  const art = w.slot === SLOT.skin ? `<rect x="145" y="55" width="110" height="100" rx="30" fill="${SKINS[id].fill}" ${line}/>${face(SKINS[id])}` : ART[id]
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${SLOT_VIEW[w.slot]}">${DEFS}${art}</svg>`
+}

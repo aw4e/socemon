@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Shield, X } from 'lucide-react'
+import { Lock, Shield, X } from 'lucide-react'
+import { ItemGlyph } from '@/components/game/ItemGlyph'
 import { Button } from '@/components/ui/Button'
 import { renderAvatar } from '@/lib/avatar'
 import { useTrainer, useUser, useWardrobe } from '@/lib/client'
@@ -154,7 +155,7 @@ export default function RushPage() {
                     style={a.id === 'boost' && hud.boosting ? { boxShadow: '0 0 24px #5EC8FF' } : undefined}
                   >
                     <span className="absolute inset-x-0 bottom-0 bg-white/15" style={{ height: `${(left / a.cooldown) * 100}%` }} />
-                    <span className="relative block text-[26px] leading-none">{ICON[a.id]}</span>
+                    <span className="relative flex justify-center"><ItemGlyph id={a.from} className="h-8 w-auto" /></span>
                     <span className="relative block mt-1">{left > 0 ? Math.ceil(left) : a.name}</span>
                   </button>
                 )
@@ -188,7 +189,7 @@ export default function RushPage() {
             </div>
             {missingBoost && (
               <p className="font-sans text-[13px] font-bold text-white/70 max-w-[280px] mt-2">
-                ⚡ Rex is hard to catch. The Blitz Jacket from the Monad Blitz check-in unlocks Blitz Boost.
+                Rex is hard to catch. The Blitz Jacket from the Monad Blitz check-in unlocks Blitz Boost.
               </p>
             )}
           </Overlay>
@@ -198,7 +199,6 @@ export default function RushPage() {
   )
 }
 
-const ICON: Record<AbilityId, string> = { boost: '⚡', fly: '🪽', slash: '🗡️' }
 
 function Overlay({ children }: { children: React.ReactNode }) {
   return (
@@ -215,7 +215,7 @@ function Kit({ kit }: { kit: RushKit }) {
         const on = kit.abilities.includes(a)
         return (
           <div key={a.id} className={`flex items-center gap-3 ${on ? '' : 'opacity-40'}`}>
-            <span className="text-[22px] w-7 text-center">{on ? ICON[a.id] : '🔒'}</span>
+            <span className="w-8 flex justify-center shrink-0">{on ? <ItemGlyph id={a.from} className="h-7 w-auto" /> : <Lock className="w-4 h-4 text-white/60" />}</span>
             <div className="min-w-0">
               <p className="font-sans text-[13px] font-black text-white">{a.name}</p>
               <p className="font-sans text-[11px] font-bold text-white/60">{on ? a.text : `Wear the ${NAMES[a.from]} to unlock`}</p>
