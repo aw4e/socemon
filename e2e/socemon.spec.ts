@@ -99,13 +99,14 @@ test.describe('wearables', () => {
     }
     expect(renderWearable(999)).toBeNull()
     expect(speciesById(190)).toMatchObject({ name: 'Blitz Jacket', pool: POOL.event, maxSupply: 200, transferable: true })
-    expect(imageFor(190)).toBe('/api/avatar/190')
+    expect(imageFor(190)).toMatch(/^\/api\/avatar\/x\?item=190&v=\d+$/)
   })
 
   test('a hat or hood hides the hair under it', () => {
     const hair = renderAvatar([0, 0, 0, 0, 140])
     expect(hair).toContain('#4A3426')
     expect(renderAvatar([0, 0, 0, 0, 140, 150])).not.toContain('#4A3426')
+    expect(renderAvatar([0, 0, 0, 0, 140, 151])).toContain('#4A3426') // the Digital Crown sits on the hair
   })
 })
 

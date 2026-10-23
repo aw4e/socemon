@@ -2,7 +2,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Gift } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { SLOT_NAMES, wearableById } from '@/lib/avatar'
+import { SLOT_NAMES, wearableById, wearableImage } from '@/lib/avatar'
 import { TIER_COLOR } from '@/lib/socemon'
 
 export type Opened = { phase: 'opening' } | { phase: 'done'; itemId: number } | { phase: 'error'; message: string }
@@ -35,7 +35,7 @@ export function BoxReveal({ state, onClose }: { state: Opened | null; onClose: (
           {state.phase === 'done' && item && (
             <>
               <motion.img
-                src={`/api/avatar/${item.id}`}
+                src={wearableImage(item.id)}
                 alt=""
                 className="w-60 h-60 rounded-[28px]"
                 style={{ boxShadow: `0 0 80px 10px ${color}` }}

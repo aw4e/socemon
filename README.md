@@ -87,8 +87,8 @@ Every game reads what the avatar wears and which pet it has. The rules live in `
 
 | Wearable | Perk |
 | --- | --- |
-| Circuit Wings / Hero Cape / Digital Hood / Blitz Jacket | Extra lives |
-| Cyber Visor / Round Glasses / Snap Cap / Digital Hood | A wider gap |
+| Circuit Wings / Hero Cape / Digital Crown / Blitz Jacket | Extra lives |
+| Cyber Visor / Round Glasses / Snap Cap / Digital Crown | A wider gap |
 | Neon Jacket / Night Blazer / Blitz Jacket | Slower, easier pipes |
 | Plasma Blade / Void Skin / Iced Coffee / Chrome Skin | Score multiplier |
 | Pet | Score multiplier by rarity |

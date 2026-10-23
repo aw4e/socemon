@@ -21,6 +21,13 @@ export interface Wearable {
   drop?: boolean
 }
 
+/** Bump this whenever any wearable's art changes: it is part of every wearable image URL, so browsers, CDNs and marketplaces
+    fetch the new picture instead of keeping yesterday's for a day. */
+export const ART_VERSION = 5
+export const wearableImage = (id: number) => `/api/avatar/${id}?v=${ART_VERSION}`
+export const itemImage = (id: number) => `/api/avatar/x?item=${id}&v=${ART_VERSION}`
+export const previewImage = (wear: readonly number[]) => `/api/avatar/preview?wear=${wear.join(',')}&bare&v=${ART_VERSION}`
+
 export const WEARABLES = catalog as Wearable[]
 export const wearableById = (id: number) => WEARABLES.find((w) => w.id === id)
 
@@ -28,7 +35,8 @@ const O = '#15131F' // outline
 const line = `stroke="${O}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`
 const TEAL = '#2DE2E6'
 
-interface Skin { fill: string; shade: string; eye: string; extra?: string }
+/* `extra` is drawn on the face, over the hair line; `bodyExtra` sits on the skin of the torso, under every piece of clothing. */
+interface Skin { fill: string; shade: string; eye: string; extra?: string; bodyExtra?: string }
 
 const DEFAULT_SKIN: Skin = { fill: '#F1C7A1', shade: '#DDA982', eye: '#1B1A2A' }
 
@@ -39,7 +47,8 @@ const SKINS: Record<number, Skin> = {
   103: {
     fill: '#1F2233', shade: '#151826', eye: TEAL,
     extra: `<g stroke="${TEAL}" stroke-width="2" fill="none" filter="url(#glow)" opacity=".85">
-      <path d="M152 120 h10 l6 8 M248 120 h-10 l-6 8 M200 60 v14 l-8 8"/>
+      <path d="M152 120 h10 l6 8 M248 120 h-10 l-6 8 M200 60 v14 l-8 8"/></g>`,
+    bodyExtra: `<g stroke="${TEAL}" stroke-width="2" fill="none" filter="url(#glow)" opacity=".85">
       <path d="M176 216 h16 l8 -8 h12 M168 232 h20"/></g>`,
   },
 }
@@ -84,13 +93,16 @@ const ART: Record<number, string> = {
   // Monad Blitz Jogja Vol. 2 event drop: the poster's deep purple, its iridescent swoosh and the BLITZ lightning bolt.
   190: `<rect x="130" y="162" width="30" height="84" rx="12" fill="url(#blitz)" ${line}/>
     <rect x="240" y="162" width="30" height="84" rx="12" fill="url(#blitz)" ${line}/>
-    <path d="M138 170 V238 M262 170 V238" stroke="url(#iris)" stroke-width="5" stroke-linecap="round"/>
     <path d="M156 160 H244 V256 H156 Z" fill="url(#blitz)" ${line}/>
-    <path d="M157 200 C186 206 214 232 243 236 V252 C212 248 184 222 157 216 Z" fill="url(#iris)"/>
+    <clipPath id="blitzChest"><rect x="159" y="163" width="82" height="91"/></clipPath>
+    <g clip-path="url(#blitzChest)">
+      <path d="M158 231 C172 217 186 217 200 231 C214 245 228 245 242 231 L242 242 C228 256 214 256 200 242 C186 228 172 228 158 242 Z" fill="url(#iris)"/>
+      <path d="M158 237 C172 223 186 223 200 237 C214 251 228 251 242 237" fill="none" stroke="#FFF" stroke-width="1.6" stroke-linecap="round" opacity=".5"/>
+    </g>
     <path d="M176 152 H224 L218 170 H182 Z" fill="#120D33" ${line}/>
-    <path d="M211 172 L190 210 H203 L193 240 L218 198 H205 Z" fill="#FFF" stroke="#120D33" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M205 168 L190 197 H199 L194 216 L210 188 H201 Z" fill="#FFF" stroke="#120D33" stroke-width="2" stroke-linejoin="round"/>
     <rect x="167" y="176" width="13" height="13" rx="4" transform="rotate(45 173.5 182.5)" fill="none" stroke="#FFF" stroke-width="2.5"/>
-    <text x="224" y="186" font-family="Arial Black, Arial, sans-serif" font-size="9" font-weight="900" fill="#FFF">VOL.2</text>
+    <text x="238" y="185" text-anchor="end" font-family="Arial Black, Arial, sans-serif" font-size="7.5" font-weight="900" fill="#FFF">VOL.2</text>
     <path d="M156 160 H244 V256 H156 Z" fill="none" ${line}/>`,
 
   // ---- hair ----
@@ -104,10 +116,12 @@ const ART: Record<number, string> = {
   150: `<path d="M142 92 C142 52 168 40 200 40 C232 40 258 52 258 92 Z" fill="#E23D4B" ${line}/>
     <path d="M140 90 H260 C264 90 266 100 258 102 H142 C134 100 136 90 140 90 Z" fill="#B82B38" ${line}/>
     <circle cx="200" cy="66" r="9" fill="#FFF" ${line}/><circle cx="200" cy="40" r="4" fill="#B82B38" ${line}/>`,
-  151: `<path d="M118 178 C108 108 128 28 200 28 C272 28 292 108 282 178 C266 170 254 166 242 162 C258 140 262 108 255 88 C246 62 226 50 200 50 C174 50 154 62 145 88 C138 108 142 140 158 162 C146 166 134 170 118 178 Z" fill="#11131B" ${line}/>
-    <path d="M145 88 C154 62 174 50 200 50 C226 50 246 62 255 88 C246 80 226 76 200 76 C174 76 154 80 145 88 Z" fill="#000" opacity=".55"/>
-    <path d="M158 162 C142 140 138 108 145 88 C154 62 174 50 200 50 C226 50 246 62 255 88 C262 108 258 140 242 162" stroke="${TEAL}" stroke-width="2.5" fill="none" filter="url(#glow)"/>
-    <path d="M192 36 L200 44 L208 36 M200 44 V52" stroke="${TEAL}" stroke-width="2" fill="none" filter="url(#glow)"/>`,
+  151: `<path d="M149 64 L150 32 L170 48 L178 22 L190 44 L200 12 L210 44 L222 22 L230 48 L250 32 L251 64 Q200 74 149 64 Z" fill="url(#gold)" ${line}/>
+    <path d="M150 54 Q200 64 250 54 L251 64 Q200 74 149 64 Z" fill="#B97A12" ${line}/>
+    <circle cx="150" cy="31" r="4.2" fill="#FF5CA8" ${line}/><circle cx="250" cy="31" r="4.2" fill="#FF5CA8" ${line}/>
+    <circle cx="178" cy="21" r="4.2" fill="${TEAL}" ${line}/><circle cx="222" cy="21" r="4.2" fill="${TEAL}" ${line}/>
+    <circle cx="200" cy="11" r="5.6" fill="#E9FFFF" stroke="${TEAL}" stroke-width="2" filter="url(#glow)"/>
+    <path d="M200 56 l6 7 l-6 7 l-6 -7 Z" fill="${TEAL}" ${line} filter="url(#glow)"/>`,
 
   // ---- eyewear ----
   160: `<g fill="#FFF" fill-opacity=".18" stroke="#2A2A2A" stroke-width="3.5">
@@ -135,12 +149,14 @@ const ART: Record<number, string> = {
 }
 
 const HIDES_HAIR_SLOT = SLOT.head // every hat or hood covers the hair under it
+const KEEPS_HAIR = new Set([151]) // except the Digital Crown, which sits on top of it
 
 const DEFS = `<defs>
   <radialGradient id="bg" cx="50%" cy="42%" r="70%"><stop offset="0" stop-color="#14323A"/><stop offset="1" stop-color="#070A10"/></radialGradient>
   <linearGradient id="chrome" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F7FB"/><stop offset=".5" stop-color="#A9B1C1"/><stop offset="1" stop-color="#E2E7EF"/></linearGradient>
   <linearGradient id="mohawk" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#836EF9"/><stop offset="1" stop-color="#FF3DA5"/></linearGradient>
   <linearGradient id="visor" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0E6C74"/><stop offset=".5" stop-color="${TEAL}"/><stop offset="1" stop-color="#0E6C74"/></linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE27A"/><stop offset=".55" stop-color="#F5C542"/><stop offset="1" stop-color="#D99A1E"/></linearGradient>
   <linearGradient id="blitz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A3AD0"/><stop offset=".55" stop-color="#2A1F86"/><stop offset="1" stop-color="#120D33"/></linearGradient>
   <linearGradient id="iris" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#836EF9"/><stop offset=".5" stop-color="#5EC8FF"/><stop offset="1" stop-color="#FF8AD8"/></linearGradient>
   <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
@@ -156,6 +172,7 @@ function body(s: Skin) {
   <rect x="134" y="166" width="24" height="78" rx="12" ${skin}/>
   <rect x="242" y="166" width="24" height="78" rx="12" ${skin}/>
   <rect x="158" y="160" width="84" height="95" rx="16" ${skin}/>
+  ${s.bodyExtra ?? ''}
   <rect x="188" y="148" width="24" height="16" fill="${s.shade}"/>
   <rect x="145" y="55" width="110" height="100" rx="30" ${skin}/>`
 }
@@ -178,7 +195,7 @@ export function renderAvatar(equipped: readonly (number | bigint)[], pet?: strin
   const at = (slot: number) => Number(equipped[slot] ?? 0)
   const layer = (slot: number) => ART[at(slot)] ?? ''
   const skin = SKINS[at(SLOT.skin)] ?? DEFAULT_SKIN
-  const hair = at(HIDES_HAIR_SLOT) ? '' : layer(SLOT.hair)
+  const hair = at(HIDES_HAIR_SLOT) && !KEEPS_HAIR.has(at(HIDES_HAIR_SLOT)) ? '' : layer(SLOT.hair)
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">${DEFS}
   ${bare ? '' : '<rect width="400" height="400" fill="url(#bg)"/><ellipse cx="200" cy="340" rx="96" ry="14" fill="#000" opacity=".45"/>'}
@@ -198,7 +215,7 @@ export function renderWearable(id: number): string | null {
 }
 
 /** Where each slot's art sits on the rig, so an item can be drawn on its own (minX minY width height). */
-const SLOT_VIEW = ['132 48 136 112', '150 236 100 100', '124 150 152 112', '124 146 152 116', '128 8 144 96', '112 22 176 92', '138 86 124 44', '228 104 54 176', '24 112 352 248']
+const SLOT_VIEW = ['132 48 136 112', '150 236 100 100', '124 150 152 112', '124 146 152 116', '128 8 144 96', '132 2 136 84', '138 86 124 44', '228 104 54 176', '24 112 352 248']
 
 /** Just the wearable, no body: a transparent glyph of the item itself, for lists and loadouts. Skins show the face. */
 export function renderItem(id: number): string | null {

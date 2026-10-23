@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAddress, toHex } from 'viem'
-import { SLOT_NAMES, wearableById } from '@/lib/avatar'
+import { SLOT_NAMES, wearableById, wearableImage } from '@/lib/avatar'
 import { STARTER_ID, imageFor, speciesById, typeName } from '@/lib/socemon'
 
 const AVATAR_FLAG = 1n << 255n
@@ -29,7 +29,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       description: wearable.drop
         ? `A Socemon event wearable for the ${SLOT_NAMES[wearable.slot].toLowerCase()} slot, only from checking in. ${wearable.maxSupply} exist. Tradeable.`
         : `A Socemon blind box wearable for the ${SLOT_NAMES[wearable.slot].toLowerCase()} slot. Tradeable.`,
-      image: `${site}/api/avatar/${wearable.id}`,
+      image: `${site}${wearableImage(wearable.id)}`,
       attributes: [
         { trait_type: 'Slot', value: SLOT_NAMES[wearable.slot] },
         { trait_type: 'Tier', value: wearable.tier },

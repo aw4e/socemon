@@ -6,6 +6,7 @@ import { BlitzReveal } from '@/components/landing/BlitzReveal'
 import { EcosystemIndex } from '@/components/landing/EcosystemIndex'
 import { FlapScene, Loop, RushScene } from '@/components/landing/Scenes'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
+import { itemImage } from '@/lib/avatar'
 import { MONAD_PURPLE, POOL, ROLES, TIER_COLOR, TYPE_COLOR, speciesById } from '@/lib/socemon'
 
 const REPO = 'https://github.com/riorblade/socemon'
@@ -153,7 +154,7 @@ export default function LandingPage() {
                   <li key={item} className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={id === 'pet' ? '/socemon/2.png' : `/api/avatar/x?item=${id}`}
+                      src={id === 'pet' ? '/socemon/2.png' : itemImage(Number(id))}
                       alt=""
                       className="h-16 w-auto max-w-[96px] object-contain [filter:drop-shadow(0_0_14px_rgba(94,200,255,0.55))_drop-shadow(0_0_2px_rgba(255,255,255,0.4))]"
                     />

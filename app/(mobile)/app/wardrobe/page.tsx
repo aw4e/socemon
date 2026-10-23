@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { BoxReveal, type Opened } from '@/components/socemon/BoxReveal'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { Button } from '@/components/ui/Button'
-import { SLOT_NAMES, WEARABLES, renderAvatar, wearableById } from '@/lib/avatar'
+import { SLOT_NAMES, WEARABLES, renderAvatar, wearableById, wearableImage } from '@/lib/avatar'
 import { post, useAct, useTrainer, useUser, useWardrobe } from '@/lib/client'
 import { TIER_COLOR } from '@/lib/socemon'
 import { cn } from '@/lib/utils'
@@ -103,7 +103,7 @@ export default function WardrobePage() {
                 )}
                 style={{ borderColor: wearing ? color : 'var(--border-default)', boxShadow: wearing ? `0 0 18px ${color}88` : undefined }}
               >
-                <img src={`/api/avatar/${w.id}`} alt="" className={cn('w-full aspect-square', !count && 'grayscale opacity-30')} />
+                <img src={wearableImage(w.id)} alt="" className={cn('w-full aspect-square', !count && 'grayscale opacity-30')} />
                 {!count && <Lock className="absolute top-2 right-2 w-4 h-4 text-text-tertiary" />}
                 {count > 1 && <span className="absolute top-2 right-2 font-mono text-[11px] font-bold text-white">×{count}</span>}
                 <span className="block px-2 py-1.5 bg-bg-surface">

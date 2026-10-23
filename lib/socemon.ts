@@ -1,5 +1,6 @@
 import catalog from '@/contracts/socemon.json'
 import wearables from '@/contracts/wearables.json'
+import { itemImage } from '@/lib/avatar'
 
 /* Species data lives in contracts/socemon.json so the deploy script and the app can never disagree on supply. */
 
@@ -57,7 +58,8 @@ export function speciesById(id: number): SocemonSpecies | undefined {
 
 export const speciesInPool = (pool: number) => SPECIES.filter((s) => s.pool === pool)
 
-export const imageFor = (id: number) => (isDropWearable(id) ? `/api/avatar/${id}` : `/socemon/${id}.png`)
+/** A drop wearable is drawn on its own (transparent), so its silhouette is the garment's shape, not a square. */
+export const imageFor = (id: number) => (isDropWearable(id) ? itemImage(id) : `/socemon/${id}.png`)
 
 /** How many of the five role types a trainer has caught at least one species of (Nexmon needs all five). */
 export const typesCaught = (owned: Set<number>) =>

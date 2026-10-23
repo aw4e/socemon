@@ -25,7 +25,7 @@ const WEARABLE_PERKS: Record<number, Perk> = {
   131: { slow: 0.1 }, // Neon Jacket
   190: { slow: 0.15, lives: 1 }, // Blitz Jacket (Monad Blitz event drop)
   150: { gap: 10 }, // Snap Cap
-  151: { lives: 1, gap: 15 }, // Digital Hood
+  151: { lives: 1, gap: 15 }, // Digital Crown
   160: { gap: 10 }, // Round Glasses
   161: { gap: 25 }, // Cyber Visor
   170: { multiplier: 0.5 }, // Iced Coffee

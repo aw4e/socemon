@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import { previewImage } from '@/lib/avatar'
 
 /*
   The Blitz Jacket drop as a hover reveal (adapted from the MotionSites "Good Fox" prompt). The front scene is a bare
@@ -11,8 +12,8 @@ import { useEffect, useRef } from 'react'
 const FRONT_BG = '#836EF9'
 const BACK_BG = '#0B0820'
 const WORDS = ['BLITZ', 'JACKET']
-const FRONT_SRC = '/api/avatar/preview?wear=0,110,0,0,142,0,0,0,0&bare'
-const BACK_SRC = '/api/avatar/preview?wear=0,110,0,190,142,0,161,0,0&bare'
+const FRONT_SRC = previewImage([0, 110, 0, 0, 142, 0, 0, 0, 0])
+const BACK_SRC = previewImage([0, 110, 0, 190, 142, 0, 161, 0, 0])
 
 export function BlitzReveal({ children }: { children?: React.ReactNode }) {
   const hero = useRef<HTMLDivElement>(null)

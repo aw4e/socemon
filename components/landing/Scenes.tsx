@@ -1,11 +1,12 @@
 import { Heart, Zap } from 'lucide-react'
+import { previewImage } from '@/lib/avatar'
 
 /* Live-looking miniatures of the ecosystem and both games, in CSS and SVG only (keyframes in globals.css). */
 
 const IRIS = 'linear-gradient(90deg, #836EF9, #5EC8FF, #FF8AD8)'
 
 /** Avatar art straight from the renderer: `wear` is one wearable id per slot. */
-const avatar = (wear: number[]) => `/api/avatar/preview?wear=${wear.join(',')}&bare`
+const avatar = previewImage
 const BLITZ_RACER = avatar([0, 111, 0, 190, 140, 0, 161, 0, 0])
 const WINGED = avatar([101, 110, 120, 131, 141, 0, 0, 0, 181])
 
