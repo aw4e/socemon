@@ -25,11 +25,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   if (wearable) {
     return NextResponse.json({
       name: wearable.name,
-      description: `A Socemon blind box wearable for the ${SLOT_NAMES[wearable.slot].toLowerCase()} slot. Tradeable.`,
+      description: wearable.drop
+        ? `A Socemon event wearable for the ${SLOT_NAMES[wearable.slot].toLowerCase()} slot, only from checking in. ${wearable.maxSupply} exist. Tradeable.`
+        : `A Socemon blind box wearable for the ${SLOT_NAMES[wearable.slot].toLowerCase()} slot. Tradeable.`,
       image: `${site}/api/avatar/${wearable.id}`,
       attributes: [
         { trait_type: 'Slot', value: SLOT_NAMES[wearable.slot] },
         { trait_type: 'Tier', value: wearable.tier },
+        { trait_type: 'Source', value: wearable.drop ? 'Event check-in' : 'Blind box' },
         { trait_type: 'Soulbound', value: 'No' },
       ],
     }, cache)
