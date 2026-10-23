@@ -1,6 +1,5 @@
 'use client'
 import { Star } from 'lucide-react'
-import { PageHeader } from '@/components/PageHeader'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
 import { post, useAct, useTrainer, useUser } from '@/lib/client'
 import {
@@ -18,8 +17,9 @@ const SECTIONS: { title: string; color: string; list: SocemonSpecies[] }[] = [
   })),
 ]
 
-/* The Socédex: progress toward Nexmon, then every species as a collectible card. Tap one you own to make it your partner. */
-export default function DexPage() {
+/* Pet and Socédex, on Me: progress toward Nexmon, then every species as a collectible card. Tap one you own to make it
+   your pet; it walks next to your avatar and multiplies your game score. */
+export function Socedex() {
   const user = useUser()
   const trainer = useTrainer(user)
   const { busy, note, act } = useAct(trainer.refetch)
@@ -27,12 +27,14 @@ export default function DexPage() {
   const types = typesCaught(trainer.owned)
 
   return (
-    <div>
-      <PageHeader title="Socédex">
-        <p className="font-poster text-[26px] leading-none text-text-secondary">
+    <div id="pet" className="scroll-mt-6">
+      <div className="flex items-end justify-between mb-1">
+        <h2 className="font-poster text-[32px] uppercase leading-none">Pet & Socédex</h2>
+        <p className="font-poster text-[22px] leading-none text-text-secondary">
           {trainer.owned.size}<span className="text-text-tertiary">/{SPECIES.length + 1}</span>
         </p>
-      </PageHeader>
+      </div>
+      <p className="font-sans text-[13px] font-bold text-text-tertiary mb-4">Tap a Socemon you own to make it your pet. Rarer pets score more in games.</p>
 
       <section aria-label="Progress toward Nexmon">
         <div className="flex items-baseline justify-between">
@@ -79,7 +81,7 @@ export default function DexPage() {
                     owned={trainer.owned.has(s.id)}
                     partner={s.id === partner}
                     disabled={!!busy}
-                    onPick={() => act(`p${s.id}`, () => post('/api/partner', { id: s.id }), `${s.name} is your partner now.`)}
+                    onPick={() => act(`p${s.id}`, () => post('/api/partner', { id: s.id }), `${s.name} is your pet now.`)}
                   />
                 ))}
               </div>

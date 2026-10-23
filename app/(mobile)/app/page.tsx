@@ -24,8 +24,8 @@ export default function HomePage() {
   const eggs = (trainer.eggs ?? []).map((count, pool) => ({ count, pool })).filter((e) => e.count > 0)
   const stats = [
     { href: '/app/friends', value: trainer.connections?.length ?? 0, label: 'Friends' },
-    { href: '/app/dex', value: `${typesCaught(trainer.owned)}/5`, label: 'Types' },
-    { href: '/app/dex', value: `${trainer.owned.size}/${SPECIES.length + 1}`, label: 'Caught' },
+    { href: '/app/me#pet', value: `${typesCaught(trainer.owned)}/5`, label: 'Types' },
+    { href: '/app/me#pet', value: `${trainer.owned.size}/${SPECIES.length + 1}`, label: 'Caught' },
   ]
 
   return (

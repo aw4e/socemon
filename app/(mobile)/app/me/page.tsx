@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Check, ChevronRight, Copy, ExternalLink, LogOut, Shirt } from 'lucide-react'
 import { PageHeader } from '@/components/PageHeader'
 import { MonsterImage } from '@/components/socemon/MonsterImage'
+import { Socedex } from '@/components/socemon/Socedex'
 import { TypeChip } from '@/components/socemon/TypeChip'
 import { Button } from '@/components/ui/Button'
 import { socemonAddress } from '@/lib/abi'
@@ -58,7 +59,7 @@ export default function MePage() {
           <div className="min-w-0">
             <p className="font-sans text-[26px] font-black leading-tight truncate">{profile?.name}</p>
             {profile && <TypeChip role={profile.role} className="mt-1.5" />}
-            <p className="font-sans text-[12px] font-bold text-text-tertiary mt-1.5">Partner · {speciesById(partner)?.name}</p>
+            <p className="font-sans text-[12px] font-bold text-text-tertiary mt-1.5">Pet · {speciesById(partner)?.name}</p>
           </div>
         </div>
         <dl className="relative grid grid-cols-3 mt-5 pt-4 border-t border-dashed border-(--border-default)">
@@ -85,6 +86,10 @@ export default function MePage() {
         </span>
         <ChevronRight className="w-5 h-5 text-text-tertiary" />
       </Link>
+
+      <section className="mt-9">
+        <Socedex />
+      </section>
 
       <button onClick={copy} className="mt-5 w-full flex items-center justify-between py-3 border-b border-(--border-subtle)">
         <span className="text-left">

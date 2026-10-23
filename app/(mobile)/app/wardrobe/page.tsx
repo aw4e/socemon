@@ -48,7 +48,7 @@ export default function WardrobePage() {
 
       <div className="relative rounded-[30px] overflow-hidden border border-(--border-default) aspect-square">
         {/* our own SVG built from static art, so inlining it is safe */}
-        <div className="absolute inset-0" dangerouslySetInnerHTML={{ __html: svg }} />
+        <div className="absolute inset-0 [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: svg }} />
         {/* the pet sits where renderAvatar draws it in the NFT image (x 272, y 258, 108 of 400); MonsterImage covers missing art */}
         <div className="absolute w-[27%] aspect-square flex items-center justify-center" style={{ left: '68%', top: '64.5%' }}>
           <MonsterImage key={partner} id={partner} size={96} className="w-full h-full" />

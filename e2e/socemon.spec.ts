@@ -7,6 +7,7 @@ import { SLOT_NAMES, WEARABLES, renderAvatar, renderWearable } from '../lib/avat
 import { boxResult, gasLimit, hatchResult } from '../lib/chain'
 import { CHECKIN_WINDOW_MS, checkinToken, currentEvent, isEventLive, isHost, verifyCheckinToken } from '../lib/checkin'
 import { errorFor } from '../lib/errors'
+import { perksFor } from '../lib/game'
 import { parseScan } from '../lib/scan'
 import { readToken, signToken } from '../lib/session'
 
@@ -54,6 +55,15 @@ test('only wallets in EVENT_HOSTS are hosts, any letter case', () => {
   expect(isHost('0x0000000000000000000000000000000000000003', env)).toBe(false)
   expect(isHost(null, env)).toBe(false)
   expect(isHost('0x0000000000000000000000000000000000000002', {})).toBe(false)
+})
+
+test('game perks come from worn NFTs and the pet', () => {
+  expect(perksFor([0, 0, 0, 0, 0, 0, 0, 0, 0], 0)).toEqual({ lives: 1, gap: 0, speed: 1, multiplier: 1, sources: [] })
+  // Circuit Wings +2 lives, Cyber Visor +25 gap, Blitz Jacket +1 life and 15% slower, Plasma Blade +1x, Pitchfox (rare) +0.25x
+  const p = perksFor([0, 0, 0, 190, 0, 0, 161, 171, 181], 5)
+  expect(p).toMatchObject({ lives: 4, gap: 25, speed: 0.85, multiplier: 2.25 })
+  expect(p.sources.map((s) => s.name)).toEqual(['Blitz Jacket', 'Cyber Visor', 'Plasma Blade', 'Circuit Wings', 'Pitchfox (pet)'])
+  expect(perksFor([0, 110, 120, 0, 140], 0).sources).toEqual([]) // style-only wearables
 })
 
 test.describe('wearables', () => {

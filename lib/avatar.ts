@@ -171,17 +171,17 @@ const face = (s: Skin) => `<g fill="${s.eye}">
 
 /**
  * `equipped` is equippedOf(user): one wearable id per slot, 0 for empty. `pet` is an image href (data URI for NFT
- * images, since marketplaces don't load external images inside an SVG).
+ * images, since marketplaces don't load external images inside an SVG). `bare` drops the backdrop and floor shadow, for
+ * game sprites.
  */
-export function renderAvatar(equipped: readonly (number | bigint)[], pet?: string): string {
+export function renderAvatar(equipped: readonly (number | bigint)[], pet?: string, bare = false): string {
   const at = (slot: number) => Number(equipped[slot] ?? 0)
   const layer = (slot: number) => ART[at(slot)] ?? ''
   const skin = SKINS[at(SLOT.skin)] ?? DEFAULT_SKIN
   const hair = at(HIDES_HAIR_SLOT) ? '' : layer(SLOT.hair)
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">${DEFS}
-  <rect width="400" height="400" fill="url(#bg)"/>
-  <ellipse cx="200" cy="340" rx="96" ry="14" fill="#000" opacity=".45"/>
+  ${bare ? '' : '<rect width="400" height="400" fill="url(#bg)"/><ellipse cx="200" cy="340" rx="96" ry="14" fill="#000" opacity=".45"/>'}
   ${layer(SLOT.back)}${body(skin)}${layer(SLOT.bottom)}${layer(SLOT.top)}${layer(SLOT.outer)}
   ${layer(SLOT.hand)}${hands(skin)}${face(skin)}${hair}${layer(SLOT.head)}${layer(SLOT.eyewear)}
   ${pet ? `<ellipse cx="326" cy="364" rx="40" ry="8" fill="#000" opacity=".45"/><image href="${pet}" x="272" y="258" width="108" height="108"/>` : ''}

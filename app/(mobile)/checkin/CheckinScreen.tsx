@@ -50,7 +50,7 @@ export function CheckinScreen({ eventName, dropId, expired }: { eventName: strin
           <div className="flex flex-col items-center text-center gap-4 py-10">
             {teaser}
             {caught ? (
-              <Link href={wearable ? '/app/wardrobe' : '/app/dex'} className="font-sans text-[14px] font-extrabold uppercase tracking-[0.06em] text-text-accent">
+              <Link href={wearable ? '/app/wardrobe' : '/app/me#pet'} className="font-sans text-[14px] font-extrabold uppercase tracking-[0.06em] text-text-accent">
                 {wearable ? 'Wear it in your Wardrobe' : 'See it in your Socédex'}
               </Link>
             ) : (

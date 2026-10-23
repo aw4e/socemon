@@ -1,12 +1,12 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, House, ScanLine, Ticket, User } from 'lucide-react'
+import { Gamepad2, House, ScanLine, Ticket, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const TABS = [
   { href: '/app', label: 'Home', Icon: House },
-  { href: '/app/dex', label: 'Socédex', Icon: BookOpen },
+  { href: '/app/game', label: 'Game', Icon: Gamepad2 },
   { href: '/app/qr', label: 'Scan', Icon: ScanLine },
   { href: '/app/event', label: 'Event', Icon: Ticket },
   { href: '/app/me', label: 'Me', Icon: User },
@@ -23,7 +23,7 @@ export function BottomNav({ requests }: { requests: number }) {
     >
       <ul className="grid grid-cols-5 h-[68px] px-1">
         {TABS.map(({ href, label, Icon }) => {
-          const active = path === href
+          const active = path === href || (href === '/app/game' && path.startsWith('/app/game'))
           if (href === '/app/qr') {
             return (
               <li key={href} className="flex justify-center">
