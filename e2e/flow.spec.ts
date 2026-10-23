@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext, type APIResponse } from '@playwright/test'
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts'
 import { createSiweMessage } from 'viem/siwe'
+import { WEARABLES, renderAvatar } from '../lib/avatar'
 import { CHECKIN_EVENT, checkinToken } from '../lib/checkin'
 
 /* The whole server path on Monad testnet with two throwaway wallets. It spends the minter's MON (about ten
@@ -49,6 +50,20 @@ test('two trainers meet, hatch and check in onchain', async ({ playwright, baseU
   expect([4, 5, 6, 16, 17, 18]).toContain(hatched.monsterId)
   await ok(A.post('/api/partner', { data: { id: hatched.monsterId } }))
   expect((await A.post('/api/partner', { data: { id: 19 } })).status()).toBe(403)
+
+  /* the connection also gave A one blind box: open it, wear the drop, and the avatar image shows it */
+  const { itemId } = await ok(A.post('/api/box'))
+  const item = WEARABLES.find((w) => w.id === itemId)!
+  expect(item).toBeTruthy()
+  expect((await A.post('/api/box')).status()).toBe(409)
+  expect((await A.post('/api/equip', { data: { slot: (item.slot + 1) % 9, id: itemId } })).status()).toBe(400)
+  await ok(A.post('/api/equip', { data: { slot: item.slot, id: itemId } }))
+  const avatar = await A.get(`/api/avatar/${a}`)
+  expect(avatar.headers()['content-type']).toBe('image/svg+xml')
+  const svg = await avatar.text()
+  const worn = Array(9).fill(0)
+  worn[item.slot] = itemId
+  expect(svg).toBe(renderAvatar(worn, svg.match(/href="(data:[^"]+)"/)?.[1]))
 
   const ticket = await B.get(`/api/checkin/ticket?t=${checkinToken(process.env.CHECKIN_SECRET!, CHECKIN_EVENT, Date.now())}`, { maxRedirects: 0 })
   expect(ticket.headers().location).toMatch(/\/checkin$/)

@@ -6,7 +6,7 @@ Socemon is a monster collection you play in real life. Meet someone at an event,
 
 **Live:** https://socemon.vercel.app
 
-**Contract (Monad testnet, chain 10143):** [`0x567A2Fcb2EF5e54d197a70F9037e7433561ce7Bd`](https://testnet.monadscan.com/address/0x567A2Fcb2EF5e54d197a70F9037e7433561ce7Bd), verified source.
+**Contract (Monad testnet, chain 10143):** [`0x718A4B866c665F743Fe76094f68AD2caA157faFa`](https://testnet.monadscan.com/address/0x718A4B866c665F743Fe76094f68AD2caA157faFa), verified source.
 
 ## How it plays
 
