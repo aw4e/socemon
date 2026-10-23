@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { HttpError, handle, int, limit, readBody, requireUser } from '@/lib/api'
+import { HttpError, handle, int, limitShared, readBody, requireUser } from '@/lib/api'
 import { relay } from '@/lib/chain'
 import { STARTER_ID } from '@/lib/socemon'
 
 /** Saves the trainer's name and role onchain and mints Soci. */
 export function POST(req: NextRequest) {
   return handle(async () => {
-    limit(req, 'register', 60, 10 * 60_000)
+    await limitShared(req, 'register', 60, 10 * 60_000)
     const user = await requireUser(req)
     const body = await readBody(req)
     const name = typeof body.name === 'string' ? body.name.trim() : ''
