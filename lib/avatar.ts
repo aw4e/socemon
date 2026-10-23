@@ -1,4 +1,5 @@
 import catalog from '@/contracts/wearables.json'
+import { EXTRA_ART } from '@/lib/avatar-art'
 import type { SocemonTier } from '@/lib/socemon'
 
 /*
@@ -23,7 +24,7 @@ export interface Wearable {
 
 /** Bump this whenever any wearable's art changes: it is part of every wearable image URL, so browsers, CDNs and marketplaces
     fetch the new picture instead of keeping yesterday's for a day. */
-export const ART_VERSION = 5
+export const ART_VERSION = 6
 export const wearableImage = (id: number) => `/api/avatar/${id}?v=${ART_VERSION}`
 export const itemImage = (id: number) => `/api/avatar/x?item=${id}&v=${ART_VERSION}`
 export const previewImage = (wear: readonly number[]) => `/api/avatar/preview?wear=${wear.join(',')}&bare&v=${ART_VERSION}`
@@ -44,6 +45,7 @@ const SKINS: Record<number, Skin> = {
   100: { fill: '#D9A066', shade: '#BE8650', eye: '#1B1A2A' },
   101: { fill: '#7A4A2E', shade: '#623A23', eye: '#140F12' },
   102: { fill: 'url(#chrome)', shade: '#8C93A3', eye: '#0E1520' },
+  105: { fill: 'url(#holo)', shade: '#8C7BE0', eye: '#1B1A2A' }, // the shimmer and sparkles are the overlay in EXTRA_ART
   103: {
     fill: '#1F2233', shade: '#151826', eye: TEAL,
     extra: `<g stroke="${TEAL}" stroke-width="2" fill="none" filter="url(#glow)" opacity=".85">
@@ -53,8 +55,9 @@ const SKINS: Record<number, Skin> = {
   },
 }
 
-/** Layer art keyed by wearable id. Skins (slot 0) live in SKINS instead. */
+/** Layer art keyed by wearable id. Skin colours (slot 0) live in SKINS; skin overlays and the second drop are in EXTRA_ART. */
 const ART: Record<number, string> = {
+  ...EXTRA_ART,
   // ---- bottom ----
   110: `<path d="M160 242 H240 V326 H203 V266 H197 V326 H160 Z" fill="#3B5B8C" ${line}/>
     <path d="M178 250 v70 M222 250 v70" stroke="#5B7DB0" stroke-width="2" fill="none"/>
@@ -149,7 +152,7 @@ const ART: Record<number, string> = {
 }
 
 const HIDES_HAIR_SLOT = SLOT.head // every hat or hood covers the hair under it
-const KEEPS_HAIR = new Set([151]) // except the Digital Crown, which sits on top of it
+const KEEPS_HAIR = new Set([151, 152, 153]) // except the Digital Crown, headphones and cat ears, which sit on top of it
 
 const DEFS = `<defs>
   <radialGradient id="bg" cx="50%" cy="42%" r="70%"><stop offset="0" stop-color="#14323A"/><stop offset="1" stop-color="#070A10"/></radialGradient>
@@ -158,6 +161,7 @@ const DEFS = `<defs>
   <linearGradient id="visor" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0E6C74"/><stop offset=".5" stop-color="${TEAL}"/><stop offset="1" stop-color="#0E6C74"/></linearGradient>
   <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE27A"/><stop offset=".55" stop-color="#F5C542"/><stop offset="1" stop-color="#D99A1E"/></linearGradient>
   <linearGradient id="blitz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4A3AD0"/><stop offset=".55" stop-color="#2A1F86"/><stop offset="1" stop-color="#120D33"/></linearGradient>
+  <linearGradient id="holo" gradientUnits="userSpaceOnUse" x1="130" y1="55" x2="270" y2="335"><stop offset="0" stop-color="#A98BFF"/><stop offset=".25" stop-color="#5EC8FF"/><stop offset=".5" stop-color="#FF8AD8"/><stop offset=".75" stop-color="#7CF2E8"/><stop offset="1" stop-color="#836EF9"/></linearGradient>
   <linearGradient id="iris" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#836EF9"/><stop offset=".5" stop-color="#5EC8FF"/><stop offset="1" stop-color="#FF8AD8"/></linearGradient>
   <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
 </defs>`
@@ -199,7 +203,7 @@ export function renderAvatar(equipped: readonly (number | bigint)[], pet?: strin
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">${DEFS}
   ${bare ? '' : '<rect width="400" height="400" fill="url(#bg)"/><ellipse cx="200" cy="340" rx="96" ry="14" fill="#000" opacity=".45"/>'}
-  ${layer(SLOT.back)}${body(skin)}${layer(SLOT.bottom)}${layer(SLOT.top)}${layer(SLOT.outer)}
+  ${layer(SLOT.back)}${body(skin)}${layer(SLOT.skin)}${layer(SLOT.bottom)}${layer(SLOT.top)}${layer(SLOT.outer)}
   ${layer(SLOT.hand)}${hands(skin)}${face(skin)}${hair}${layer(SLOT.head)}${layer(SLOT.eyewear)}
   ${pet ? `<ellipse cx="326" cy="364" rx="40" ry="8" fill="#000" opacity=".45"/><image href="${pet}" x="272" y="258" width="108" height="108"/>` : ''}
 </svg>`
@@ -221,6 +225,7 @@ const SLOT_VIEW = ['132 48 136 112', '150 236 100 100', '124 150 152 112', '124 
 export function renderItem(id: number): string | null {
   const w = wearableById(id)
   if (!w) return null
-  const art = w.slot === SLOT.skin ? `<rect x="145" y="55" width="110" height="100" rx="30" fill="${SKINS[id].fill}" ${line}/>${face(SKINS[id])}` : ART[id]
+  const skin = SKINS[id] ?? DEFAULT_SKIN
+  const art = w.slot === SLOT.skin ? `<rect x="145" y="55" width="110" height="100" rx="30" fill="${skin.fill}" ${line}/>${ART[id] ?? ''}${face(skin)}` : ART[id]
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${SLOT_VIEW[w.slot]}">${DEFS}${art}</svg>`
 }
